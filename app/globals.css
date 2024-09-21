@@ -1,6 +1,8 @@
+/* app/globals.css */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-lato: 'Lato', Arial, sans-serif; /* Define the Lato font with fallbacks */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,7 +21,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lato); /* Use the Lato font globally */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

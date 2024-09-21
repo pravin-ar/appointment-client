@@ -1,0 +1,73 @@
+/* Customer Reviews Section Styles */
+
+.happyCustomerSection {
+    background-color: #f0f8ff;
+    padding: 150px 0 150px 0 ;
+    text-align: center;
+}
+
+.sectionTitle {
+    font-size: 38px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    line-height: 45.6px;
+    color: #383838;
+}
+
+.sectionSubtitle {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 28.8px;
+    color: #676767;
+    margin-bottom: 30px;
+}
+
+.reviewsContainer {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.reviewCard {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    margin: 20px;
+    padding: 20px;
+    text-align: left;
+}
+
+.reviewerImageWrapper {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.reviewerImage {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+}
+
+.reviewContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.reviewText {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.reviewerName {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.reviewerPosition {
+    font-size: 14px;
+    color: #777;
+}

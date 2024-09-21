@@ -1,0 +1,88 @@
+/* styles/Footer.module.css */
+
+.footer {
+    background-color: #f8f8f8;
+    /* Adjust as needed */
+    padding: 120px;
+    font-family: Arial, sans-serif;
+}
+
+.footerContainer {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.footerLeft,
+.footerCenter,
+.footerRight {
+    flex: 1;
+    margin: 0 20px;
+}
+
+.footerLeft {
+    text-align: left;
+}
+
+.footerLeft .logo {
+    margin-bottom: 10px;
+}
+
+.footerLeft p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #959595;
+}
+
+.footerLeft a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.footerCenter h3,
+.footerRight h3 {
+    font-size: 16px;
+    margin-bottom: 50px;
+    color: #545454;
+}
+
+.footerCenter ul,
+.footerRight ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.footerCenter ul li,
+.footerRight ul li {
+    margin: 5px;
+}
+
+.footerCenter ul li a,
+.footerRight ul li a {
+    color: #959595;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.footerCenter ul li a:hover,
+.footerRight ul li a:hover {
+    color: #0066cc;
+}
+
+.footerRight {
+    position: relative;
+    /* Allows absolute positioning for the footerImage */
+}
+
+/* Default styles for footerImage, can be overridden by inline styles */
+.footerImage {
+    position: absolute;
+    width: 256.81px;
+    /* Adjust as necessary */
+    height: 377.73px;
+    /* Adjust as necessary */
+    bottom: 0;
+    /* Position at the bottom of the parent */
+    right: 0;
+    /* Position to the right of the parent */
+}

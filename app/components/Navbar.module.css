@@ -1,0 +1,43 @@
+/* app/components/Navbar.module.css */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px;
+    background-color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.navbarLeft {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    align-items: center;
+    margin-left: 40px;
+    /* Adjust margin as necessary */
+}
+
+.navbarCenter {
+    display: flex;
+    align-items: center;
+}
+
+.navLink {
+    margin-left: 60px;
+    margin-right: 20px;
+    /* Spacing between links */
+    font-size: 24px;
+    text-decoration: none;
+    color: #383838;
+    font-weight: bold;
+    /* Make text bold */
+    cursor: pointer;
+}
+
+.navLink:hover {
+    color: #0066cc;
+    /* Hover color for navigation links */
+}

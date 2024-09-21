@@ -1,0 +1,836 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body,html {
+    font-family: Arial, sans-serif;
+    background-color: #f7f3e9;
+    /* Light beige background */
+    color: #5a4632;
+    /* Darker brown for text */
+    padding: 0;
+    margin: 0;
+    min-height: 100%;
+}
+
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: linear-gradient(90deg, #d9b899, #c8a577);
+    /* Light brown gradient background */
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.company-name {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.book-now-btn,
+.admin-btn {
+    background-color: #ffffff;
+    border: 2px solid #8c6d4f;
+    padding: 10px 20px;
+    color: #8c6d4f;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.book-now-btn:hover,
+.admin-btn:hover {
+    background-color: #8c6d4f;
+    color: #ffffff;
+}
+
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+    bottom: 30px;
+    text-align: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+
+/* Additional Styles for Responsiveness */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 70vh;
+        /* Adjust height for smaller screens */
+    }
+
+    .hero-content {
+        bottom: 20px;
+        /* Adjust distance from bottom on smaller screens */
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        min-height: 60vh;
+        /* Further reduce height for very small screens */
+    }
+
+    .hero-content {
+        bottom: 10px;
+        /* Adjust distance from bottom on smaller screens */
+        padding: 0 10px;
+    }
+}
+
+.know-more-btn {
+    background-color: #b27d57;
+    border: none;
+    padding: 15px 30px;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.know-more-btn:hover {
+    background-color: #8c6d4f;
+    transform: translateY(-3px);
+}
+
+/* Services Section Styles */
+.services-section, .products-section {
+    padding: 50px 20px;
+    background-color: #f1e4d3;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    color: #5a4632;
+}
+
+.services-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.service-card {
+    width: 100%;
+    max-width: 250px;
+    height: 300px;
+    border-radius: 18px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.service-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(139, 115, 85, 0.9);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: 0 0 18px 18px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.service-card:hover .service-overlay {
+    transform: translateY(0);
+}
+
+.service-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.service-description {
+    font-size: 1em;
+    margin: 0;
+}
+
+/* Customer Reviews Section Styles */
+.reviews-section {
+    padding: 50px 20px;
+    background-color: #f7f3e9;
+    text-align: center;
+}
+
+.reviews-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.review-card {
+    width: 100%;
+    max-width: 300px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.reviewer-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.reviewer-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    object-fit: cover;
+}
+
+.reviewer-name {
+    font-size: 1.2em;
+    color: #5a4632;
+    margin-bottom: 10px;
+}
+
+.review-text {
+    font-size: 1em;
+    color: #8c6d4f;
+    line-height: 1.5;
+}
+
+/* Footer Section Styles */
+.footer {
+    background-color: #d9b899;
+    padding: 30px 20px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 14px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-left,
+.footer-center,
+.footer-right {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-left h3,
+.footer-center h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.footer-left p,
+.footer-right p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.footer-center .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.social-link {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.social-link:hover {
+    background-color: #8c6d4f;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .services-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .reviews-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .footer-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-title {
+        font-size: 1.8em;
+    }
+
+    .book-now-btn,
+    .know-more-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+
+    .hero-section {
+        height: 70vh;
+        /* Adjust height for smaller screens */
+    }
+}
+
+/* Book Now and Admin Page Styles */
+.book-now-page,
+.admin-page,
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f7f3e9;
+}
+
+/* Book Now Section Styles */
+.book-now-section,
+.login-section {
+    padding: 50px 20px;
+    background-color: #f7f3e9;
+    /* Light beige background */
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #5a4632;
+    /* Darker brown for text */
+}
+
+.booking-form,
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1em;
+    color: #5a4632;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    /* Light gray border */
+    border-radius: 4px;
+    font-size: 1em;
+    background-color: #ffffff;
+    /* White background for input fields */
+    color: #5a4632;
+    /* Darker brown for text */
+}
+
+.book-now-btn,
+.login-btn {
+    background-color: #b27d57;
+    /* Light brown background for button */
+    border: none;
+    padding: 15px;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.book-now-btn:hover,
+.login-btn:hover {
+    background-color: #8c6d4f;
+    /* Darker brown on hover */
+    transform: translateY(-3px);
+}
+
+/* Modal styles */
+.modal {
+    display: flex;
+    /* Ensure modal is visible */
+    position: fixed;
+    /* Stay in place */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    /* Black background with transparency */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    /* On top of other elements */
+}
+
+.modal-content {
+    background-color: #fff;
+    /* White background */
+    border-radius: 10px;
+    /* Rounded corners */
+    padding: 30px;
+    /* Space inside */
+    text-align: center;
+    max-width: 400px;
+    /* Max width of modal */
+    margin: auto;
+    /* Center horizontally */
+    position: relative;
+    /* For the close button positioning */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Shadow effect */
+    animation: fadeIn 0.5s;
+    /* Fade-in animation */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+}
+
+.home-btn {
+    background-color: #4CAF50;
+    /* Green button */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+
+.home-btn:hover {
+    background-color: #45a049;
+    /* Darker green on hover */
+}
+
+/* Date Picker Styles */
+.date-picker {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    margin-top: 5px;
+}
+
+/* Time Slots Styles */
+.time-slots-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.time-slot {
+    padding: 10px 15px;
+    background-color: #e7e7e7;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.time-slot.active {
+    background-color: #b27d57;
+    /* Active slot color */
+    color: white;
+}
+
+.time-slot:hover {
+    background-color: #8c6d4f;
+    /* Hover color */
+    color: white;
+}
+
+/* View Data Page Styles */
+.view-data-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f7f3e9; /* Light beige background */
+}
+
+.view-data-section {
+    padding: 50px 20px;
+    background-color: #ffffff; /* White background */
+    max-width: 90%;
+    margin: 50px auto;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #5a4632; /* Darker brown for text */
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    color: #000000; /* Set text color to black */
+}
+
+.data-table th {
+    background-color: #d9b899; /* Light brown background */
+    color: #ffffff;
+}
+
+.data-table tr:nth-child(even) {
+    background-color: #f7f3e9; /* Light beige */
+}
+
+.data-table tr:hover {
+    background-color: #f1e4d3; /* Slightly darker beige */
+}
+
+
+.edit-icon,
+.delete-icon {
+    cursor: pointer;
+    margin: 0 5px;
+    color: #b27d57;
+    font-size: 20px;
+}
+
+.edit-icon:hover,
+.delete-icon:hover {
+    color: #8c6d4f;
+}
+
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+/* Styles for the Admin Panel */
+.admin-panel {
+    min-height: calc(100vh - 60px); /* Adjust this value based on your header height if any */
+    padding-bottom: 30px; /* Adds some padding at the bottom */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    background-color: #f5f3e7; /* Light beige background */
+}
+
+.panel-title {
+    
+    font-size: 28px;
+    font-weight: bold;
+    color: #5b3a2e; /* Dark brown color */
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+/* Container for the service cards */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* Styles for each service card */
+.card {
+    background-color: #ffffff; /* White background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Header styles for the card */
+.card-header {
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 22px;
+    color: #5b3a2e; /* Dark brown color */
+}
+
+/* Styles for the description or input */
+.card-description,
+.card-input {
+    font-size: 16px;
+    color: #333; /* Dark gray color */
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.card-input {
+    width: 100%;
+    height: 100px;
+    resize: none;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.card-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px; /* Adjust as necessary */
+    border-radius: 5px;
+    margin-bottom: 20px;
+    object-fit: cover;
+}
+
+
+/* Footer styles for buttons */
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn {
+    background-color: #5b3a2e; /* Dark brown background */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #8b5e3c; /* Lighter brown background */
+}
+
+.save-btn {
+    background-color: #4caf50; /* Green for Save button */
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+.edit-btn {
+    background-color: #5b3a2e; /* Dark brown for Edit button */
+}
+
+.edit-btn:hover {
+    background-color: #8b5e3c;
+}
+
+
+/* Styles for Add Card Button */
+.add-card-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.add-btn {
+    background-color: #5b3a2e; /* Same color as other buttons */
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Styles for Dialog Overlay */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Styles for Dialog Box */
+.dialog {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dialog h2 {
+    margin-bottom: 10px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Styles for Dialog Inputs */
+.dialog-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Styles for Dialog Footer */
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Additional Styles for Buttons */
+.btn.save-btn {
+    background-color: #4caf50; /* Green for Save button */
+}
+
+.btn.cancel-btn {
+    background-color: #f44336; /* Red for Cancel button */
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
