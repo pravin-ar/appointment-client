@@ -34,12 +34,12 @@ export default function ProductsSection() {
                             <div className={styles.productImageWrapper}>
                                 <img
                                     src={product.image_url}
-                                    alt={product.product_name}
+                                    alt={product.name}  // Corrected to use product.name
                                     className={styles.productImage}
                                 />
                             </div>
                             <div className={styles.productContent}>
-                                <h3 className={styles.productTitle}>{product.product_name}</h3>
+                                <h3 className={styles.productTitle}>{product.name}</h3>
                                 <p className={styles.productDescription}>{product.description}</p>
                                 <button className={styles.readMoreBtn}>Read More</button>
                             </div>

@@ -1,0 +1,284 @@
+/* app/book-now/BookNow.module.css */
+
+.bookNowPage {
+    background-color: #FFF3FA;
+    padding: 40px 100px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pageTitle {
+    text-align: center;
+    font-size: 44px;
+    font-weight: 800;
+    color: #383838;
+    margin-bottom: 20px;
+    /* Adjust as necessary */
+}
+
+.pageSubtitle {
+    text-align: center;
+    font-size: 24px;
+    color: #676767;
+    margin-bottom: 30px;
+    /* Adjust as necessary */
+}
+
+.userTypeToggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    /* Add more space for visual clarity */
+    gap: 20px;
+    /* Space between the buttons */
+}
+
+.userTypeBtn {
+    width: 250px;
+    /* Adjusted for better alignment */
+    height: 64px;
+    /* Reduced height for better visual alignment */
+    padding: 10px 20px;
+    border: none;
+    background-color: #FFFFFF;
+    color: #666;
+    cursor: pointer;
+    border-radius: 24px;
+    font-size: 18px;
+    /* Increased font size */
+    font-weight: 600;
+    /* Font weight for more emphasis */
+}
+
+.userTypeBtn.active {
+    background-color: #ff007f;
+    color: #fff;
+}
+
+.bookingForm {
+    width: 100%;
+    max-width: 1172px;
+    /* Set max-width for better layout */
+}
+
+.formGroup {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    /* Space between label and input */
+}
+
+.formLabel {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 28.8px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #383838;
+    display: block;
+}
+
+.inputField {
+    min-width: 1172px;
+height: 84px;
+border-radius: 16px;
+    width: 100%;
+    padding: 18px;
+    /* Increased padding for a thicker input */
+    border-radius: 16px;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    /* Slightly larger font size */
+    background-color: #ffffff;
+    /* White background */
+    color: #000000;
+    /* Text color */
+    margin-top: 5px;
+    /* Space between the input and label */
+}
+
+.inputField::placeholder {
+    color: #878787;
+    /* Placeholder text color */
+}
+
+.inputField:focus {
+    border-color: #ff007f;
+    /* Border color on focus */
+    box-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
+    /* Shadow effect on focus */
+    outline: none;
+    /* Remove default outline */
+}
+
+/* Styles for the mobile number field */
+.phoneNumberGroup {
+    display: flex;
+    align-items: center;
+    border: 2px solid #FF007F;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.countryCodeContainer {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #FFFFFF;
+    color: #FF007F;
+    font-weight: 600;
+    border-right: 2px solid #FF007F;
+    /* Border color to match input field */
+}
+
+.inputFieldPhoneNumber {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    outline: none;
+    background-color: #ffffff;
+    /* White background */
+    font-size: 16px;
+    border-radius: 0 15px 15px 0;
+}
+
+.datePickerContainer {
+    display: flex;
+    gap: 10px;
+}
+
+.datePicker {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 16px;
+}
+
+.timeSlotsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.timeSlot {
+    padding: 15px 20px;
+    background-color: #f2f2f2;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.timeSlot.active {
+    background-color: #ff007f;
+    color: #fff;
+}
+
+.serviceGroup {
+    margin-top: 30px;
+}
+
+.servicesContainer {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.serviceBtn {
+    width: 180px;
+    height: 160px;
+    padding: 15px 25px;
+    background-color: #f2f2f2;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 140px;
+    height: 120px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #959595;
+    /* Default text color */
+}
+
+.serviceBtn.active {
+    background-color: #ff007f;
+    color: #ffffff;
+    /* Text color when active */
+}
+
+.serviceBtn span {
+    margin-top: 10px;
+    color: inherit;
+    /* Use the button's color property */
+}
+
+.serviceBtn:hover {
+    /* background-color: #e2e2e2; */
+    transform: scale(1.05);
+}
+
+.iconContainer {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Color of the icon will be controlled by the filter property in the component */
+}
+
+
+.textarea {
+    width: 100%;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    color: #000000;
+    background-color: #ffffff;
+    font-size: 16px;
+    resize: none;
+    height: 150px;
+    /* Adjusted height */
+}
+
+.formActions {
+    margin-top: 30px;
+    display: flex; /* Enable flexbox */
+    justify-content: center; /* Center items horizontally */
+}
+
+.bookAppointmentBtn {
+    width: 324px;
+    height: 84px;
+    border-radius: 24px;
+    border: none;
+    cursor: pointer;
+    font-size: 32px;
+    font-weight: 700;
+    background-color: #EC008B;
+    color: #fff;
+    text-align: center;
+}

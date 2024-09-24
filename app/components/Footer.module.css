@@ -1,88 +1,115 @@
 /* styles/Footer.module.css */
 
 .footer {
-    background-color: #f8f8f8;
-    /* Adjust as needed */
-    padding: 120px;
-    font-family: Arial, sans-serif;
+    background-color: #FFFFFF;
+    padding-bottom: 200px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: left;
 }
 
 .footerContainer {
     display: flex;
     justify-content: space-between;
-    padding: 20px;
+    align-items: flex-start; /* Align items to the top */
+    padding: 0 20px;
+    max-width: 100%; /* Max width for better content alignment */
+    margin: 0 auto; /* Center the container */
 }
 
 .footerLeft,
 .footerCenter,
 .footerRight {
     flex: 1;
-    margin: 0 20px;
+    margin: 0 100px;
 }
 
 .footerLeft {
-    text-align: left;
+    max-width: 316px;
+    width: 100%;
+    padding: 0; /* Ensure no padding reduces effective width */
+    box-sizing: border-box; /* Ensure padding and borders are included in width */
 }
 
 .footerLeft .logo {
-    margin-bottom: 10px;
+    /* margin: 18px 0; */
+    width: 203px; /* Adjusted width */
+    height: 57px; /* Adjusted height */
 }
 
 .footerLeft p {
-    margin: 10px 0;
-    font-size: 14px;
-    color: #959595;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.6px;
+    min-width: 316px;
+    margin: 18px 0;
+    color: #959595; /* Darker font color for contrast */
+}
+
+.footerLeft p:not(:last-child) {
+    margin-bottom: 20px; /* Margin below all paragraphs except last one */
 }
 
 .footerLeft a {
-    color: #0066cc;
+    color: #0066cc; /* Color for links */
     text-decoration: none;
+    display: inline-block; /* Make links behave as block elements */
 }
 
 .footerCenter h3,
 .footerRight h3 {
-    font-size: 16px;
-    margin-bottom: 50px;
-    color: #545454;
+    font-size: 20px;
+    font-weight: bold;
+    color: #383838; /* Darker heading color */
+    margin-bottom: 18px; /* Space below headings */
 }
 
 .footerCenter ul,
 .footerRight ul {
-    list-style-type: none;
+    list-style-type: none; /* Remove list style */
     padding: 0;
 }
 
 .footerCenter ul li,
 .footerRight ul li {
-    margin: 5px;
+    margin: 18px 0; /* Space between list items */
 }
 
 .footerCenter ul li a,
 .footerRight ul li a {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.6;
     color: #959595;
-    text-decoration: none;
-    font-size: 14px;
+    display: inline-block; /* Make links behave as block elements */
 }
 
 .footerCenter ul li a:hover,
 .footerRight ul li a:hover {
-    color: #0066cc;
+    color: #0066cc; /* Hover color */
 }
 
-.footerRight {
-    position: relative;
-    /* Allows absolute positioning for the footerImage */
+/* New class for contact information spacing */
+.contactInfo {
+    line-height: 2; /* Increase line-height for spacing between lines */
+    margin: 18px 0; /* Add margin around the paragraph */
 }
 
-/* Default styles for footerImage, can be overridden by inline styles */
-.footerImage {
-    position: absolute;
-    width: 256.81px;
-    /* Adjust as necessary */
-    height: 377.73px;
-    /* Adjust as necessary */
-    bottom: 0;
-    /* Position at the bottom of the parent */
-    right: 0;
-    /* Position to the right of the parent */
+@media (max-width: 768px) {
+    .footerContainer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center; /* Center text on smaller screens */
+    }
+
+    .footerLeft,
+    .footerCenter,
+    .footerRight {
+        margin-bottom: 30px;
+    }
+
+    .footerLeft {
+        max-width: none; /* Remove max-width on smaller screens */
+        width: 100%; /* Take full width */
+    }
 }

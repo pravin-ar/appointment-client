@@ -68,7 +68,7 @@ export async function POST(req) {
         // Insert the event into the calendar
         const insertedEvent = await calendar.events.insert({
             auth: authClient,
-            calendarId: 'singhjai112ya@gmail.com',
+            calendarId: EMAIL_USER,
             resource: event,
         });
 
@@ -84,7 +84,7 @@ export async function POST(req) {
         });
 
         const mailOptions = {
-            from: 'singhjai112ya@gmail.com',
+            from: EMAIL_USER,
             to: email,
             subject: 'Booking Confirmation',
             html: `

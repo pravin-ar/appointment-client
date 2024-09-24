@@ -1,0 +1,43 @@
+/* app/components/AboutUsContent.module.css */
+
+.container {
+    display: flex;
+    height: 150vh;
+    justify-content: center; /* Horizontal centering */
+    align-items: flex-start; /* Align items to the top */
+    padding: 40px 20px;
+    background-color: #FFFFFF; /* Light background color */
+    padding-top: 20px; /* Optional: Add more space at the top if needed */
+}
+
+
+.contentBox {
+    background-color: #fff; /* White background */
+    border: 1px solid #EC008B; /* Light border color */
+    border-radius: 24px; /* Rounded corners */
+    margin-top: 80px;
+    padding: 60px 40px;
+    max-width: 1337px;
+    min-height: 681px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    text-align: center;
+}
+
+.title {
+    padding-top: 20px;
+    padding-bottom: 40px;
+    font-size: 44px;
+    font-weight: 800;
+    color: #383838;
+    line-height: 52.8px;
+    margin-bottom: 20px;
+}
+
+.text {
+    font-size: 24px;
+    font-weight: 500;
+    color: #6B6B6B;
+    line-height: 28.8px;
+    padding: 10px;
+    margin-bottom: 20px;
+}

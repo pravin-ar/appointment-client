@@ -2,9 +2,9 @@
 
 .navbar {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    padding: 20px 20px;
+    padding: 40px 20px;
     background-color: #fff;
     font-family: Arial, sans-serif;
 }
@@ -15,29 +15,67 @@
 }
 
 .logo {
-    align-items: center;
+    align-items: baseline;
     margin-left: 40px;
+    width: 340.5px;
+    height: 96px;
     /* Adjust margin as necessary */
 }
 
 .navbarCenter {
     display: flex;
     align-items: center;
+    gap: 60px; /* Control the space between links */
 }
 
 .navLink {
-    margin-left: 60px;
-    margin-right: 20px;
-    /* Spacing between links */
+    padding-right: 0; /* Remove padding to control space with gap */
     font-size: 24px;
-    text-decoration: none;
+    font-weight: 700;
     color: #383838;
-    font-weight: bold;
-    /* Make text bold */
+    text-decoration: none;
     cursor: pointer;
 }
 
 .navLink:hover {
     color: #0066cc;
     /* Hover color for navigation links */
+}
+
+/* Style for combining the glass icon and Book appointment link */
+.navLinkWithIconAboutUs,
+.navLinkWithIcon {
+    display: flex;
+    align-items: center;
+    /* No flex-direction to keep the icon beside text */
+    gap: 10px; /* Space between icon and text */
+    position: relative; /* Relative position to control icon placement */
+}
+
+/* Styles for About Us icon */
+.glassIconAboutUs {
+    position: absolute;
+    top: -30px; /* Adjust this to move the icon above the text */
+    left: 50%; /* Center the icon above the text */
+    transform: translateX(-50%); /* Center alignment */
+}
+
+/* Styles for Book Now icon */
+.glassIconBookNow {
+    position: absolute;
+    top: -30px; /* Adjust this to move the icon above the text */
+    left: 50%; /* Center the icon above the text */
+    transform: translateX(-50%); /* Center alignment */
+}
+
+/* Adjust text alignment */
+.navLinkWithIcon .navLink,
+.navLinkWithIconAboutUs .navLink {
+    margin-top: 0px; /* Create space above the text for the icon */
+    padding-right: 0; /* Remove extra padding */
+    text-align: center; /* Center the text below the icon */
+}
+
+.navbarCenter:last-child{
+    padding-right: 50px;
 }

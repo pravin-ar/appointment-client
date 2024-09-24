@@ -1,9 +1,9 @@
-// app/components/Navbar.js
+// app/components/NavbarHome.js
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './Navbar.module.css';
 
-const Navbar = () => {
+const NavbarHome = () => {
     return (
         <header className={styles.navbar}>
             <div className={styles.navbarLeft}>
@@ -16,7 +16,7 @@ const Navbar = () => {
                 />
             </div>
             <nav className={styles.navbarCenter}>
-                <Link href="/">
+                <Link href="/" className={styles.navLink}>
                     <Image
                         src="/assets/images/glass.png" // Replace with your glasses icon path
                         alt="Glasses Icon"
@@ -24,7 +24,8 @@ const Navbar = () => {
                         height={24} // Adjust size as necessary
                     />
                 </Link>
-                <Link href="/login" className={styles.navLink}>About us</Link>
+                <Link href="/aboutus" className={styles.navLink}>About us</Link>
+                <Link href="/offer" className={styles.navLink}>Offer</Link>
                 <Link href="/service" className={styles.navLink}>Service</Link>
                 <Link href="/products" className={styles.navLink}>Products</Link>
                 <Link href="/book-now" className={styles.navLink}>Book appointment</Link>
@@ -33,4 +34,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default NavbarHome;

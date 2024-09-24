@@ -1,3 +1,4 @@
+// admin/app/service-card-text/page.js
 "use client";
 import { useEffect, useState } from 'react';
 
@@ -5,9 +6,10 @@ export default function ServiceCardText() {
     const [services, setServices] = useState([]);
     const [editing, setEditing] = useState(null);
     const [description, setDescription] = useState('');
-    const [imageUrl, setImageUrl] = useState(''); 
-    const [serviceName, setServiceName] = useState(''); 
-    const [showDialog, setShowDialog] = useState(false); // State to control the visibility of the dialog
+    const [imageUrl, setImageUrl] = useState('');
+    const [serviceName, setServiceName] = useState('');
+    const [imageFile, setImageFile] = useState(null);
+    const [showDialog, setShowDialog] = useState(false);
 
     useEffect(() => {
         fetchServices();
@@ -16,10 +18,10 @@ export default function ServiceCardText() {
     // Fetch service card text data from the API
     const fetchServices = async () => {
         try {
+            console.log('Fetching service card data...');
             const response = await fetch('/api/service-card-text');
             const data = await response.json();
-
-            console.log('Received Data:', data);
+            console.log('Received service data:', data);
 
             if (data && data.length > 0) {
                 setServices(data);
@@ -31,63 +33,50 @@ export default function ServiceCardText() {
         }
     };
 
-    // Handle editing mode and setting description, image URL, and service name
+    // Handle editing mode and setting fields
     const handleEdit = (service) => {
-        setEditing(service.id);
+        console.log('Editing service:', service);
+        setEditing(service.id); // Set editing mode to the service ID
         setDescription(service.description);
         setImageUrl(service.image_url);
-        setServiceName(service.service_name); 
+        setServiceName(service.name);
     };
 
-    // Save updated service name, description, and image URL to the database
+    // Save or update service data and upload image to S3
     const handleSave = async (id) => {
         try {
+            console.log('Saving service with ID:', id);
+            const formData = new FormData();
+            formData.append('id', id); // Ensure the ID is passed when editing
+            formData.append('name', serviceName);
+            formData.append('description', description);
+            if (imageFile) {
+                formData.append('file', imageFile); // Append the file directly
+                console.log('Attached image file:', imageFile);
+            }
+
             const response = await fetch('/api/service-card-text', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id, service_name: serviceName, description, image_url: imageUrl }), 
+                method: id ? 'PUT' : 'POST',
+                body: formData,
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update service');
+                throw new Error('Failed to save service');
             }
 
+            console.log('Service saved successfully:', id);
             setEditing(null);
-            fetchServices(); 
+            fetchServices();
         } catch (error) {
             console.error('Error saving service:', error);
         }
     };
 
-    // Function to add a new service
-    const handleAddService = async () => {
-        try {
-            const response = await fetch('/api/service-card-text', {
-                method: 'POST', // Change method to POST for adding new data
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ service_name: serviceName, description, image_url: imageUrl }), // Data for the new service
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to add service');
-            }
-
-            setShowDialog(false); // Close the dialog
-            fetchServices(); // Refresh the data after adding a new service
-        } catch (error) {
-            console.error('Error adding service:', error);
-        }
-    };
-
-    // Function to reset dialog fields
-    const resetDialogFields = () => {
-        setServiceName('');
-        setDescription('');
-        setImageUrl('');
+    // Handle image file change
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setImageFile(file);
+        console.log('Selected image file:', file);
     };
 
     return (
@@ -98,8 +87,8 @@ export default function ServiceCardText() {
                     services.map((service) => (
                         <article key={service.id} className="card">
                             <header className="card-header">
-                                <h2 className="card-title">{service.service_name}</h2>
-                                <img src={service.image_url} alt={service.service_name} className="card-image" /> {/* Display image */}
+                                <h2 className="card-title">{service.name}</h2>
+                                <img src={service.image_url} alt={service.name} className="card-image" />
                             </header>
                             {editing === service.id ? (
                                 <>
@@ -109,19 +98,17 @@ export default function ServiceCardText() {
                                         value={serviceName}
                                         placeholder="Enter Service Name"
                                         onChange={(e) => setServiceName(e.target.value)}
-                                    /> {/* Service Name input */}
+                                    />
                                     <textarea
                                         className="card-input"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                     />
                                     <input
-                                        type="text"
+                                        type="file"
                                         className="card-input"
-                                        value={imageUrl}
-                                        placeholder="Enter Image URL"
-                                        onChange={(e) => setImageUrl(e.target.value)}
-                                    /> {/* Image URL input */}
+                                        onChange={handleImageChange}
+                                    /> {/* Image upload */}
                                 </>
                             ) : (
                                 <p className="card-description">{service.description}</p>
@@ -139,13 +126,11 @@ export default function ServiceCardText() {
                     <p>No services available.</p>
                 )}
             </div>
-            {/* Add Card Button */}
             <div className="add-card-container">
-                <button className="btn add-btn" onClick={() => { setShowDialog(true); resetDialogFields(); }}>
+                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setImageFile(null); }}>
                     Add Card
                 </button>
             </div>
-            {/* Add Card Dialog */}
             {showDialog && (
                 <div className="dialog-overlay">
                     <div className="dialog">
@@ -164,14 +149,12 @@ export default function ServiceCardText() {
                             onChange={(e) => setDescription(e.target.value)}
                         />
                         <input
-                            type="text"
+                            type="file"
                             className="dialog-input"
-                            value={imageUrl}
-                            placeholder="Enter Image URL"
-                            onChange={(e) => setImageUrl(e.target.value)}
+                            onChange={handleImageChange}
                         />
                         <div className="dialog-footer">
-                            <button className="btn save-btn" onClick={handleAddService}>Save</button>
+                            <button className="btn save-btn" onClick={() => { handleSave(null); setShowDialog(false); }}>Save</button>
                             <button className="btn cancel-btn" onClick={() => setShowDialog(false)}>Cancel</button>
                         </div>
                     </div>

@@ -1,15 +1,18 @@
 /* Customer Reviews Section Styles */
-
 .happyCustomerSection {
-    background-color: #f0f8ff;
-    padding: 150px 0 150px 0 ;
+    /* width: 1438px; */
+    height: 1170px;
+    background-color: #EAF9FF;
+    padding: 100px 0;
+    /* Adjusted padding */
     text-align: center;
+    position: relative; /* Set position relative to control absolute children */
+    margin-bottom: 200px;
 }
 
 .sectionTitle {
     font-size: 38px;
     font-weight: 800;
-    margin-bottom: 10px;
     line-height: 45.6px;
     color: #383838;
 }
@@ -19,55 +22,110 @@
     font-weight: 600;
     line-height: 28.8px;
     color: #676767;
-    margin-bottom: 30px;
+    padding: 50px 0;
 }
 
 .reviewsContainer {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
+    align-items: flex-start;
+    /* Align items to the start for a uniform look */
 }
 
 .reviewCard {
     background-color: #ffffff;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    margin: 20px;
-    padding: 20px;
+    border-radius: 16px 117px 16px 160px;
+    /* Custom border-radius for corners */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    /* Slightly stronger shadow */
+    width: 460px;
+    /* Set width */
+    height: 445px;
+    /* Set height */
+    margin: 100px 20px 0 20px;
+    padding: 30px 20px;
+    /* Adjusted padding inside the card */
     text-align: left;
+    position: relative;
+    /* Required for the reviewer image positioning */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    /* Space between text and image */
 }
 
 .reviewerImageWrapper {
     text-align: center;
-    margin-bottom: 20px;
+    position: absolute;
+    /* Position the image wrapper */
+    top: -50px;
+    /* Adjust vertical positioning */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #EAF9FF;
+    /* Ensure background color is white */
+    border-radius: 50%;
+    /* Make the wrapper circular */
+    padding: 10px;
+    /* Adjust padding to create a border effect */
+    /* border: 5px solid #EAF9FF; Light border around the image */
 }
 
 .reviewerImage {
     border-radius: 50%;
-    width: 80px;
-    height: 80px;
+    /* Make the image circular */
+    width: 148px;
+    /* Adjust image width */
+    height: 148px;
+    /* Adjust image height */
+    object-fit: cover;
+    /* Ensure the image fits well within the container */
 }
+
 
 .reviewContent {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 60px;
+    /* Adjust padding to give space for the image */
+    height: 100%;
+    /* Fill the available height */
+    justify-content: center;
+    /* Center the content vertically */
 }
 
 .reviewText {
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-.reviewerName {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 16px;
+    /* Increased font size */
+    font-weight: 600;
+    color: #A5A5A5;
+    line-height: 19.2px;
+    text-align: center;
+    /* Center align the text */
+    margin-bottom: 20px;
 }
 
 .reviewerPosition {
-    font-size: 14px;
-    color: #777;
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 21.6px;
+    color: #ff007f;
+    /* Darker gray for text */
+}
+
+.starsContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.star {
+    color: #FFD700;
+    /* Gold color for stars */
+
+    font-size: 35px;
+    /* Larger star size */
+    margin: 0 2px;
 }

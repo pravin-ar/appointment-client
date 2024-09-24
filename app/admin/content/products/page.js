@@ -5,49 +5,57 @@ export default function ProductCardText() {
     const [products, setProducts] = useState([]);
     const [editing, setEditing] = useState(null);
     const [description, setDescription] = useState('');
-    const [imageUrl, setImageUrl] = useState(''); 
+    const [imageFile, setImageFile] = useState(null); // Handle file uploads
     const [productName, setProductName] = useState(''); 
-    const [showDialog, setShowDialog] = useState(false); // State to control the visibility of the dialog
+    const [status, setStatus] = useState(''); // Added for status column
+    const [showDialog, setShowDialog] = useState(false); // Control the dialog visibility
 
     useEffect(() => {
         fetchProducts();
     }, []);
 
-    // Fetch product card text data from the API
+    // Fetch product data from the API
     const fetchProducts = async () => {
         try {
             const response = await fetch('/api/products');
             const data = await response.json();
-
             console.log('Received Data:', data);
 
             if (data && data.length > 0) {
                 setProducts(data);
             } else {
-                console.warn('No product card data found.');
+                console.warn('No product data found.');
             }
         } catch (error) {
             console.error('Error fetching products:', error);
         }
     };
 
-    // Handle editing mode and setting description, image URL, and product name
+    // Handle editing mode and setting fields
     const handleEdit = (product) => {
         setEditing(product.id);
         setDescription(product.description);
-        setImageUrl(product.image_url);
-        setProductName(product.product_name); 
+        setProductName(product.name); 
+        setStatus(product.status); // Set the status field
+        setImageFile(null); // Reset image file on edit
     };
 
-    // Save updated product name, description, and image URL to the database
+    // Save updated product details and image file to the database
     const handleSave = async (id) => {
         try {
+            const formData = new FormData(); // Using FormData to handle file uploads
+            formData.append('id', id);
+            formData.append('name', productName);
+            formData.append('description', description);
+            formData.append('status', status); // Append status field
+            if (imageFile) {
+                formData.append('file', imageFile); // Append the file directly
+                console.log('Attached image file:', imageFile);
+            }
+
             const response = await fetch('/api/products', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id, product_name: productName, description, image_url: imageUrl }), 
+                body: formData, // Use FormData as the request body
             });
 
             if (!response.ok) {
@@ -61,15 +69,27 @@ export default function ProductCardText() {
         }
     };
 
+    // Handle image file change
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setImageFile(file);
+        console.log('Selected image file:', file);
+    };
+
     // Function to add a new product
     const handleAddProduct = async () => {
         try {
+            const formData = new FormData(); // Using FormData to handle file uploads
+            formData.append('name', productName);
+            formData.append('description', description);
+            formData.append('status', status); // Append status field
+            if (imageFile) {
+                formData.append('file', imageFile); // Append the file directly
+            }
+
             const response = await fetch('/api/products', {
-                method: 'POST', // Change method to POST for adding new data
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ product_name: productName, description, image_url: imageUrl }), // Data for the new product
+                method: 'POST',
+                body: formData, // Use FormData as the request body
             });
 
             if (!response.ok) {
@@ -87,7 +107,8 @@ export default function ProductCardText() {
     const resetDialogFields = () => {
         setProductName('');
         setDescription('');
-        setImageUrl('');
+        setStatus(''); // Reset status input field
+        setImageFile(null); // Reset file input field
     };
 
     return (
@@ -98,8 +119,8 @@ export default function ProductCardText() {
                     products.map((product) => (
                         <article key={product.id} className="card">
                             <header className="card-header">
-                                <h2 className="card-title">{product.product_name}</h2>
-                                <img src={product.image_url} alt={product.product_name} className="card-image" /> {/* Display image */}
+                                <h2 className="card-title">{product.name}</h2>
+                                <img src={product.image_url} alt={product.name} className="card-image" /> {/* Display image */}
                             </header>
                             {editing === product.id ? (
                                 <>
@@ -118,13 +139,21 @@ export default function ProductCardText() {
                                     <input
                                         type="text"
                                         className="card-input"
-                                        value={imageUrl}
-                                        placeholder="Enter Image URL"
-                                        onChange={(e) => setImageUrl(e.target.value)}
-                                    /> {/* Image URL input */}
+                                        value={status}
+                                        placeholder="Enter Status"
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    /> {/* Status input */}
+                                    <input
+                                        type="file"
+                                        className="card-input"
+                                        onChange={handleImageChange} // Handle file input
+                                    /> {/* Image upload */}
                                 </>
                             ) : (
-                                <p className="card-description">{product.description}</p>
+                                <>
+                                    <p className="card-description">{product.description}</p>
+                                    <p className="card-status"><strong>Status: </strong>{product.status}</p> {/* Display status */}
+                                </>
                             )}
                             <footer className="card-footer">
                                 {editing === product.id ? (
@@ -166,9 +195,14 @@ export default function ProductCardText() {
                         <input
                             type="text"
                             className="dialog-input"
-                            value={imageUrl}
-                            placeholder="Enter Image URL"
-                            onChange={(e) => setImageUrl(e.target.value)}
+                            value={status}
+                            placeholder="Enter Status"
+                            onChange={(e) => setStatus(e.target.value)}
+                        /> {/* Status input */}
+                        <input
+                            type="file"
+                            className="dialog-input"
+                            onChange={handleImageChange} // Handle file input
                         />
                         <div className="dialog-footer">
                             <button className="btn save-btn" onClick={handleAddProduct}>Save</button>

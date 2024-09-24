@@ -3,7 +3,7 @@
 import BookAppointmentButton from './components/BookAppointmentButton'; // Import the Book Appointment button
 import CustomerReviews from './components/CustomerReviews'; // Import the component
 import Footer from './components/Footer'; // Import the Footer component
-import Navbar from './components/Navbar'; // Import the Navbar component
+import NavbarHome from './components/NavbarHome';
 import ProductsSection from './components/ProductsSection'; // Import the ProductsSection component
 import ServicesSection from './components/ServicesSection'; // Import the ServicesSection component
 
@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <>
       {/* Include the Navbar component */}
-      <Navbar />
+      <NavbarHome />
 
       {/* Background Image Section */}
       <section className="hero-section" style={{ backgroundImage: "url('/assets/images/background.png')" }}>

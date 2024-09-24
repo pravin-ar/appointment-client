@@ -12,15 +12,15 @@ const Footer = () => {
                         <Image
                             src="/assets/images/keena_logo.png" // Replace with your logo path
                             alt="Keena Rakkado Logo"
-                            width={200} // Adjust as necessary
-                            height={50} // Adjust as necessary
+                            width={203} // Adjust as necessary
+                            height={57} // Adjust as necessary
                         />
                     </div>
                     <p>
                         Keena Rakkado was established in May 2002 after taking over an
                         established optician - Spectacle Express in West Ealing.
                     </p>
-                    <p>
+                    <p className={styles.contactInfo}>
                         Mob No: +91-1112223334
                         <br />
                         Email id: abcd11@gmail.com
@@ -35,7 +35,8 @@ const Footer = () => {
                     <ul>
                         <li><a href="#">About Us</a></li>
                         <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="/contact-us">Contact Us</a></li>
+                        <li><a href="#">Our Policy</a></li>
                     </ul>
                 </div>
 
@@ -61,20 +62,6 @@ const Footer = () => {
                         <li><a href="#">NHS Notice Patience</a></li>
                     </ul>
                 </div>
-                {/* Image container with background image
-                <div
-                        className={styles.footerImage}
-                        style={{
-                            backgroundImage: "url('/assets/images/leaf.png')",
-                            backgroundPosition: 'bottom right',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundSize: 'contain',
-                            filter: 'invert(41%) sepia(99%) saturate(2762%) hue-rotate(308deg) brightness(95%) contrast(100%)',
-                            position: 'absolute',
-                            bottom: '0',
-                            right: '0'
-                        }}
-                    ></div> */}
             </div>
         </footer>
     );

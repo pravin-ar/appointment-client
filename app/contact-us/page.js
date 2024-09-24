@@ -2,13 +2,11 @@
 "use client"; // Ensures this is a Client Component
 
 import Head from 'next/head';
-import Image from 'next/image'; // Import the Image component from next/image
 import { useEffect, useState } from 'react';
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Footer from '../components/Footer'; // Import the Footer component
 import NavbarBookNow from '../components/NavbarBookNow'; // Import the Navbar component
-import styles from './BookNow.module.css'; // Import the custom CSS module
+import styles from './contact.module.css'; // Import the custom CSS module
 
 export default function BookNow() {
     const [selectedDate, setSelectedDate] = useState(null);
@@ -120,22 +118,7 @@ export default function BookNow() {
             <div className={styles.bookNowPage}>
                 <h1 className={styles.pageTitle}>Book an Appointment</h1>
                 <p className={styles.pageSubtitle}>Would you like to schedule an appointment? Please provide us with your information.</p>
-                <div className={styles.userTypeToggle}>
-                    <button
-                        type="button"
-                        className={`${styles.userTypeBtn} ${formData.isNewUser ? styles.active : ''}`}
-                        onClick={handleToggle}
-                    >
-                        I am a new user
-                    </button>
-                    <button
-                        type="button"
-                        className={`${styles.userTypeBtn} ${!formData.isNewUser ? styles.active : ''}`}
-                        onClick={handleToggle}
-                    >
-                        I am an existing user
-                    </button>
-                </div>
+                
                 <form className={styles.bookingForm} onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
                         <label htmlFor="fullName" className={styles.formLabel}>Enter your name</label>
@@ -151,44 +134,6 @@ export default function BookNow() {
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label htmlFor="dob" className={styles.formLabel}>Your birth date</label>
-                        <div className={styles.datePickerContainer}>
-                            <DatePicker
-                                id="dob"
-                                selected={dob}
-                                onChange={(date) => setDob(date)}
-                                dateFormat="dd / MM / yyyy"
-                                placeholderText="DD / MM / YYYY"
-                                className={`${styles.datePicker} ${styles.inputField}`} // Combined styles for inputField and datePicker
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="phoneNumber" className={styles.formLabel}>Your mobile number</label>
-                        <div className={styles.phoneNumberGroup}>
-                            <div className={styles.countryCodeContainer}>
-                                <span>+91</span>
-                                <Image
-                                    src="/assets/images/india_flag.png" // Replace with your country flag path
-                                    alt="India Flag"
-                                    width={24}
-                                    height={15}
-                                />
-                            </div>
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                name="phoneNumber"
-                                placeholder="91461 10405"
-                                value={formData.phoneNumber}
-                                onChange={handleChange}
-                                className={styles.inputFieldPhoneNumber}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.formGroup}>
                         <label htmlFor="email" className={styles.formLabel}>Your email id</label>
                         <input
                             type="email"
@@ -201,38 +146,6 @@ export default function BookNow() {
                             required
                         />
                     </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="datePicker" className={styles.formLabel}>Appointment Date</label>
-                        <div className={styles.datePickerContainer}>
-                            <DatePicker
-                                id="datePicker"
-                                selected={selectedDate}
-                                onChange={(date) => setSelectedDate(date)}
-                                dateFormat="dd / MM / yyyy"
-                                placeholderText="DD / MM / YYYY"
-                                minDate={new Date()}
-                                className={`${styles.datePicker} ${styles.inputField}`} // Combined styles for inputField and datePicker
-                                required
-                            />
-                        </div>
-                    </div>
-                    {selectedDate && (
-                        <div className={styles.formGroup}>
-                            <label htmlFor="timeSlot" className={styles.formLabel}>Your available slot</label>
-                            <div className={styles.timeSlotsContainer}>
-                                {timeSlots.map((slot, index) => (
-                                    <button
-                                        type="button"
-                                        key={index}
-                                        className={`${styles.timeSlot} ${formData.timeSlot === slot ? styles.active : ''}`}
-                                        onClick={() => setFormData({ ...formData, timeSlot: slot })}
-                                    >
-                                        {slot}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                     <div className={`${styles.formGroup} ${styles.serviceGroup}`}>
                         <label className={styles.formLabel}>What type of service would you like to receive?</label>
                         <div className={styles.servicesContainer}>
@@ -273,9 +186,8 @@ export default function BookNow() {
                         />
                     </div>
                     <div className={styles.formActions}>
-                        <button type="button" className={styles.editBtn}>Edit</button>
                         <button type="submit" className={styles.bookAppointmentBtn} disabled={isRedirecting}>
-                            {isRedirecting ? "Redirecting..." : "Book Appointment"}
+                            {isRedirecting ? "Redirecting..." : "Send"}
                         </button>
                     </div>
                 </form>

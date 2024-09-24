@@ -1,4 +1,3 @@
-// app/components/ServicesSection.js
 import { useEffect, useRef, useState } from 'react';
 import styles from './ServicesSection.module.css';
 
@@ -12,7 +11,16 @@ const ServicesSection = () => {
             try {
                 const response = await fetch('/api/service-card-text');
                 const data = await response.json();
-                setServices(data);
+                
+                // If the data structure doesn't match, modify it accordingly.
+                // Adjust the field names based on the actual response.
+                const formattedServices = data.map((service) => ({
+                    id: service.id,
+                    name: service.name, // Adjust the field names to match your data
+                    description: service.description, // Adjust the field names to match your data
+                    image_url: service.image_url,
+                }));
+                setServices(formattedServices);
             } catch (error) {
                 console.error('Error fetching services:', error);
             }
@@ -85,12 +93,12 @@ const ServicesSection = () => {
                                 <div className={styles.imageWrapper}>
                                     <img
                                         src={service.image_url}
-                                        alt={service.service_name}
+                                        alt={service.name} // Use the correct field name for the alt attribute
                                         className={styles.serviceImage}
                                     />
                                 </div>
                                 <div className={styles.cardContent}>
-                                    <h3 className={styles.serviceTitle}>{service.service_name}</h3>
+                                    <h3 className={styles.serviceTitle}>{service.name}</h3> {/* Use correct field name */}
                                     <p className={styles.serviceDescription}>{service.description}</p>
                                     <button className={styles.readMoreBtn}>Read More</button>
                                 </div>
