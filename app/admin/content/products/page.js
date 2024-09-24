@@ -5,7 +5,10 @@ export default function ProductCardText() {
     const [products, setProducts] = useState([]);
     const [editing, setEditing] = useState(null);
     const [description, setDescription] = useState('');
-    const [imageFile, setImageFile] = useState(null); // Handle file uploads
+    const [imageFile, setImageFile] = useState({
+        file: null,
+        id: null
+    }); // Handle file uploads
     const [productName, setProductName] = useState(''); 
     const [status, setStatus] = useState(''); // Added for status column
     const [showDialog, setShowDialog] = useState(false); // Control the dialog visibility
@@ -37,7 +40,7 @@ export default function ProductCardText() {
         setDescription(product.description);
         setProductName(product.name); 
         setStatus(product.status); // Set the status field
-        setImageFile(null); // Reset image file on edit
+        setImageFile({ file: null, id: null }); // Reset image file on edit
     };
 
     // Save updated product details and image file to the database
@@ -48,9 +51,9 @@ export default function ProductCardText() {
             formData.append('name', productName);
             formData.append('description', description);
             formData.append('status', status); // Append status field
-            if (imageFile) {
-                formData.append('file', imageFile); // Append the file directly
-                console.log('Attached image file:', imageFile);
+            if (imageFile.file && imageFile.id === id) {
+                formData.append('file', imageFile.file); // Append the file directly
+                console.log('Attached image file:', imageFile.file);
             }
 
             const response = await fetch('/api/products', {
@@ -70,11 +73,15 @@ export default function ProductCardText() {
     };
 
     // Handle image file change
-    const handleImageChange = (e) => {
+    const handleImageChange = (e, id = null) => {
         const file = e.target.files[0];
-        setImageFile(file);
+        setImageFile({
+            file: file,
+            id: id
+        });
         console.log('Selected image file:', file);
     };
+
 
     // Function to add a new product
     const handleAddProduct = async () => {
@@ -83,8 +90,8 @@ export default function ProductCardText() {
             formData.append('name', productName);
             formData.append('description', description);
             formData.append('status', status); // Append status field
-            if (imageFile) {
-                formData.append('file', imageFile); // Append the file directly
+            if (imageFile.file) {
+                formData.append('file', imageFile.file); // Append the file directly
             }
 
             const response = await fetch('/api/products', {
@@ -108,7 +115,7 @@ export default function ProductCardText() {
         setProductName('');
         setDescription('');
         setStatus(''); // Reset status input field
-        setImageFile(null); // Reset file input field
+        setImageFile({ file: null, id: null }); // Reset file input field
     };
 
     return (
@@ -146,7 +153,7 @@ export default function ProductCardText() {
                                     <input
                                         type="file"
                                         className="card-input"
-                                        onChange={handleImageChange} // Handle file input
+                                        onChange={(e) => handleImageChange(e, editing)} // Handle file input
                                     /> {/* Image upload */}
                                 </>
                             ) : (
@@ -202,7 +209,7 @@ export default function ProductCardText() {
                         <input
                             type="file"
                             className="dialog-input"
-                            onChange={handleImageChange} // Handle file input
+                            onChange={(e) => handleImageChange(e)} // Handle file input
                         />
                         <div className="dialog-footer">
                             <button className="btn save-btn" onClick={handleAddProduct}>Save</button>
