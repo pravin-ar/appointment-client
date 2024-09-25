@@ -40,11 +40,11 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch all service cards with their image URLs
+// GET method to fetch all service cards with their image URLs, status, and info
 export async function GET() {
     const connection = await createConnection();
     try {
-        console.log('Fetching all service card data with images...');
+        console.log('Fetching all service card data with images, status, and info...');
         const [results] = await connection.execute(`
             SELECT 
                 s.id, 
@@ -52,7 +52,9 @@ export async function GET() {
                 s.description, 
                 s.create_at, 
                 s.update_at, 
-                i.path AS image_url 
+                i.path AS image_url,
+                s.status,
+                t.info
             FROM 
                 kr_dev.services s 
             LEFT JOIN 
@@ -61,6 +63,12 @@ export async function GET() {
                 s.id = i.category_id 
             AND 
                 i.category = 'service'
+            LEFT JOIN
+                kr_dev.text_data t
+            ON
+                s.id = t.category_id 
+            AND
+                t.category = 'service'
         `);
         console.log('Fetched Service Data:', results);
 
@@ -79,7 +87,7 @@ export async function GET() {
     }
 }
 
-// POST method to add a new service card and store image URL
+// POST method to add a new service card and store image URL, status, and info
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -87,8 +95,10 @@ export async function POST(req) {
         const name = formData.get("name");
         const description = formData.get("description");
         const file = formData.get("file");
+        const status = formData.get("status") || 'Y';
+        const info = formData.get("info");
 
-        console.log('Received data for new service:', { name, description });
+        console.log('Received data for new service:', { name, description, status, info });
 
         if (!name || !description || !file) {
             console.warn('Missing required fields:', { name, description, file });
@@ -100,11 +110,11 @@ export async function POST(req) {
 
         // Format the date as `YYYY-MM-DD`
         const createAt = new Date().toISOString().split('T')[0];
-        console.log(`Inserting into kr_dev.services with name: ${name}, description: ${description}, create_at: ${createAt}`);
+        console.log(`Inserting into kr_dev.services with name: ${name}, description: ${description}, status: ${status}, create_at: ${createAt}`);
 
         const [serviceResult] = await connection.execute(
-            'INSERT INTO kr_dev.services (name, description, create_at) VALUES (?, ?, ?)',
-            [name, description, createAt]
+            'INSERT INTO kr_dev.services (name, description, status, create_at) VALUES (?, ?, ?, ?)',
+            [name, description, status, createAt]
         );
 
         const serviceId = serviceResult.insertId;
@@ -127,6 +137,15 @@ export async function POST(req) {
 
         console.log('Image record inserted into kr_dev.images with ID:', imageResult.insertId);
 
+        // Store info in the text_data table
+        if (info) {
+            const [textDataResult] = await connection.execute(
+                'INSERT INTO kr_dev.text_data (category, category_id, info, create_at) VALUES (?, ?, ?, ?)',
+                ["service", serviceId, info, createAt]
+            );
+            console.log('Info record inserted into kr_dev.text_data with ID:', textDataResult.insertId);
+        }
+
         await connection.end();
 
         return new Response(JSON.stringify({ message: 'Service and image added successfully', serviceId }), {
@@ -143,7 +162,7 @@ export async function POST(req) {
     }
 }
 
-// PUT method to update an existing service card and its image URL
+// PUT method to update an existing service card, its image URL, status, and info
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -152,8 +171,10 @@ export async function PUT(req) {
         const name = formData.get("name");
         const description = formData.get("description");
         const file = formData.get("file");
+        const status = formData.get("status");
+        const info = formData.get("info");
 
-        console.log('Received data for updating service:', { id, name, description,file });
+        console.log('Received data for updating service:', { id, name, description, status, info, file });
 
         if (!id || !name || !description) {
             console.warn('Missing required fields:', { id, name, description });
@@ -167,10 +188,10 @@ export async function PUT(req) {
         const updateAt = new Date().toISOString().split('T')[0];
 
         // Update service details
-        console.log(`Updating kr_dev.services with name: ${name}, description: ${description}, update_at: ${updateAt}, id: ${id}`);
+        console.log(`Updating kr_dev.services with name: ${name}, description: ${description}, status: ${status}, update_at: ${updateAt}, id: ${id}`);
         const [serviceUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.services SET name = ?, description = ?, update_at = ? WHERE id = ?',
-            [name, description, updateAt, id]
+            'UPDATE kr_dev.services SET name = ?, description = ?, status = ?, update_at = ? WHERE id = ?',
+            [name, description, status, updateAt, id]
         );
 
         console.log('Service update result:', serviceUpdateResult);
@@ -230,6 +251,32 @@ export async function PUT(req) {
             console.log('No new image file provided, keeping the old image.');
         }
 
+        // Update or insert info in the text_data table
+        const [existingTextData] = await connection.execute(
+            'SELECT info FROM kr_dev.text_data WHERE category = ? AND category_id = ?',
+            ["service", id]
+        );
+
+        if (existingTextData.length > 0) {
+            // Update existing info record
+            console.log(`Updating kr_dev.text_data with info: ${info}, update_at: ${updateAt} for service id: ${id}`);
+            const [textDataUpdateResult] = await connection.execute(
+                'UPDATE kr_dev.text_data SET info = ?, update_at = ? WHERE category = ? AND category_id = ?',
+                [info, updateAt, "service", id]
+            );
+            console.log('Info update result:', textDataUpdateResult);
+        } else if (info) {
+            // Insert new info record if not existing and info is provided
+            console.log(`Inserting new info entry for service ID: ${id}.`);
+            const [newTextDataResult] = await connection.execute(
+                'INSERT INTO kr_dev.text_data (category, category_id, info, create_at) VALUES (?, ?, ?, ?)',
+                ["service", id, info, updateAt]
+            );
+            console.log('New info record inserted into kr_dev.text_data with ID:', newTextDataResult.insertId);
+        } else {
+            console.log('No new info provided, keeping the old info or null.');
+        }
+
         await connection.end();
 
         return new Response(JSON.stringify({ message: 'Service and image updated successfully', imageUrl }), {
@@ -245,7 +292,6 @@ export async function PUT(req) {
         });
     }
 }
-
 
 export const config = {
     api: {
