@@ -9,6 +9,8 @@ export default function ServiceCardText() {
     const [imageUrl, setImageUrl] = useState('');
     const [serviceName, setServiceName] = useState('');
     const [imageFile, setImageFile] = useState(null);
+    const [status, setStatus] = useState('Y'); // New state for status
+    const [info, setInfo] = useState(''); // New state for info
     const [showDialog, setShowDialog] = useState(false);
 
     useEffect(() => {
@@ -40,6 +42,8 @@ export default function ServiceCardText() {
         setDescription(service.description);
         setImageUrl(service.image_url);
         setServiceName(service.name);
+        setStatus(service.status || 'Y'); // Set status
+        setInfo(service.info || ''); // Set info
     };
 
     // Save or update service data and upload image to S3
@@ -50,6 +54,9 @@ export default function ServiceCardText() {
             formData.append('id', id); // Ensure the ID is passed when editing
             formData.append('name', serviceName);
             formData.append('description', description);
+            formData.append('status', status); // Append status
+            formData.append('info', info); // Append info
+
             if (imageFile) {
                 formData.append('file', imageFile); // Append the file directly
                 console.log('Attached image file:', imageFile);
@@ -104,6 +111,20 @@ export default function ServiceCardText() {
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                     />
+                                    <select
+                                        className="card-input"
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    >
+                                        <option value="Y">Y</option>
+                                        <option value="N">N</option>
+                                    </select> {/* Dropdown for status */}
+                                    <textarea
+                                        className="card-input"
+                                        value={info}
+                                        placeholder="Enter Additional Info (optional)"
+                                        onChange={(e) => setInfo(e.target.value)}
+                                    />
                                     <input
                                         type="file"
                                         className="card-input"
@@ -111,7 +132,11 @@ export default function ServiceCardText() {
                                     /> {/* Image upload */}
                                 </>
                             ) : (
-                                <p className="card-description">{service.description}</p>
+                                <>
+                                    <p className="card-description">{service.description}</p>
+                                    <p className="card-info">Info: {service.info || 'N/A'}</p> {/* Display info */}
+                                    <p className="card-status">Status: {service.status || 'Y'}</p> {/* Display status */}
+                                </>
                             )}
                             <footer className="card-footer">
                                 {editing === service.id ? (
@@ -127,7 +152,7 @@ export default function ServiceCardText() {
                 )}
             </div>
             <div className="add-card-container">
-                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setImageFile(null); }}>
+                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setImageFile(null); setStatus('Y'); setInfo(''); }}>
                     Add Card
                 </button>
             </div>
@@ -147,6 +172,20 @@ export default function ServiceCardText() {
                             value={description}
                             placeholder="Enter Service Description"
                             onChange={(e) => setDescription(e.target.value)}
+                        />
+                        <select
+                            className="dialog-input"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                        >
+                            <option value="Y">Y</option>
+                            <option value="N">N</option>
+                        </select> {/* Dropdown for status */}
+                        <textarea
+                            className="dialog-input"
+                            value={info}
+                            placeholder="Enter Additional Info (optional)"
+                            onChange={(e) => setInfo(e.target.value)}
                         />
                         <input
                             type="file"
