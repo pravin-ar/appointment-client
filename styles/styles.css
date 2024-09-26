@@ -5,7 +5,8 @@
     box-sizing: border-box;
 }
 
-body,html {
+body,
+html {
     font-family: Arial, sans-serif;
     background-color: #ffffff;
     /* Light beige background */
@@ -15,6 +16,7 @@ body,html {
     margin: 0;
     min-height: 100%;
 }
+
 
 /* Navbar Styles */
 .navbar {
@@ -133,7 +135,8 @@ body,html {
 }
 
 /* Services Section Styles */
-.services-section, .products-section {
+.services-section,
+.products-section {
     padding: 50px 20px;
     background-color: #f1e4d3;
     text-align: center;
@@ -559,12 +562,14 @@ body,html {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f7f3e9; /* Light beige background */
+    background-color: #f7f3e9;
+    /* Light beige background */
 }
 
 .view-data-section {
     padding: 50px 20px;
-    background-color: #ffffff; /* White background */
+    background-color: #ffffff;
+    /* White background */
     max-width: 90%;
     margin: 50px auto;
     text-align: center;
@@ -575,7 +580,8 @@ body,html {
 .section-title {
     font-size: 2em;
     margin-bottom: 20px;
-    color: #5a4632; /* Darker brown for text */
+    color: #5a4632;
+    /* Darker brown for text */
 }
 
 .data-table {
@@ -589,20 +595,24 @@ body,html {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
-    color: #000000; /* Set text color to black */
+    color: #000000;
+    /* Set text color to black */
 }
 
 .data-table th {
-    background-color: #d9b899; /* Light brown background */
+    background-color: #d9b899;
+    /* Light brown background */
     color: #ffffff;
 }
 
 .data-table tr:nth-child(even) {
-    background-color: #f7f3e9; /* Light beige */
+    background-color: #f7f3e9;
+    /* Light beige */
 }
 
 .data-table tr:hover {
-    background-color: #f1e4d3; /* Slightly darker beige */
+    background-color: #f1e4d3;
+    /* Slightly darker beige */
 }
 
 
@@ -635,20 +645,24 @@ body,html {
 
 /* Styles for the Admin Panel */
 .admin-panel {
-    min-height: calc(100vh - 60px); /* Adjust this value based on your header height if any */
-    padding-bottom: 30px; /* Adds some padding at the bottom */
+    min-height: calc(100vh - 60px);
+    /* Adjust this value based on your header height if any */
+    padding-bottom: 30px;
+    /* Adds some padding at the bottom */
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 30px;
-    background-color: #f5f3e7; /* Light beige background */
+    background-color: #f5f3e7;
+    /* Light beige background */
 }
 
 .panel-title {
-    
+
     font-size: 28px;
     font-weight: bold;
-    color: #5b3a2e; /* Dark brown color */
+    color: #5b3a2e;
+    /* Dark brown color */
     margin-bottom: 40px;
     text-align: center;
 }
@@ -665,7 +679,8 @@ body,html {
 
 /* Styles for each service card */
 .card {
-    background-color: #ffffff; /* White background */
+    background-color: #ffffff;
+    /* White background */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     padding: 20px;
@@ -688,14 +703,16 @@ body,html {
 
 .card-title {
     font-size: 22px;
-    color: #5b3a2e; /* Dark brown color */
+    color: #5b3a2e;
+    /* Dark brown color */
 }
 
 /* Styles for the description or input */
 .card-description,
 .card-input {
     font-size: 16px;
-    color: #333; /* Dark gray color */
+    color: #333;
+    /* Dark gray color */
     line-height: 1.5;
     margin-bottom: 20px;
 }
@@ -713,7 +730,8 @@ body,html {
 .card-image {
     width: 100%;
     height: auto;
-    max-height: 200px; /* Adjust as necessary */
+    max-height: 200px;
+    /* Adjust as necessary */
     border-radius: 5px;
     margin-bottom: 20px;
     object-fit: cover;
@@ -728,7 +746,8 @@ body,html {
 }
 
 .btn {
-    background-color: #5b3a2e; /* Dark brown background */
+    background-color: #5b3a2e;
+    /* Dark brown background */
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -738,11 +757,13 @@ body,html {
 }
 
 .btn:hover {
-    background-color: #8b5e3c; /* Lighter brown background */
+    background-color: #8b5e3c;
+    /* Lighter brown background */
 }
 
 .save-btn {
-    background-color: #4caf50; /* Green for Save button */
+    background-color: #4caf50;
+    /* Green for Save button */
 }
 
 .save-btn:hover {
@@ -750,7 +771,8 @@ body,html {
 }
 
 .edit-btn {
-    background-color: #5b3a2e; /* Dark brown for Edit button */
+    background-color: #5b3a2e;
+    /* Dark brown for Edit button */
 }
 
 .edit-btn:hover {
@@ -766,7 +788,8 @@ body,html {
 }
 
 .add-btn {
-    background-color: #5b3a2e; /* Same color as other buttons */
+    background-color: #5b3a2e;
+    /* Same color as other buttons */
     color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
@@ -781,7 +804,8 @@ body,html {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -824,11 +848,13 @@ body,html {
 
 /* Additional Styles for Buttons */
 .btn.save-btn {
-    background-color: #4caf50; /* Green for Save button */
+    background-color: #4caf50;
+    /* Green for Save button */
 }
 
 .btn.cancel-btn {
-    background-color: #f44336; /* Red for Cancel button */
+    background-color: #f44336;
+    /* Red for Cancel button */
 }
 
 .btn:hover {

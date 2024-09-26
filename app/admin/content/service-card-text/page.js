@@ -1,6 +1,8 @@
-// admin/app/service-card-text/page.js
 "use client";
 import { useEffect, useState } from 'react';
+import ReactQuill from 'react-quill'; // Import react-quill
+import 'react-quill/dist/quill.snow.css'; // Import Quill theme
+import './CustomQuillStyles.css'; // Import custom styles for headers
 
 export default function ServiceCardText() {
     const [services, setServices] = useState([]);
@@ -9,9 +11,25 @@ export default function ServiceCardText() {
     const [imageUrl, setImageUrl] = useState('');
     const [serviceName, setServiceName] = useState('');
     const [imageFile, setImageFile] = useState(null);
-    const [status, setStatus] = useState('Y'); // New state for status
-    const [info, setInfo] = useState(''); // New state for info
+    const [status, setStatus] = useState('Y');
+    const [info, setInfo] = useState(''); // New state for info (rich text)
     const [showDialog, setShowDialog] = useState(false);
+
+    // Quill editor modules for toolbar configuration
+    const modules = {
+        toolbar: [
+            [{ 'header': '1' }, { 'header': '2' }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['bold', 'italic', 'underline'], // Removed color options
+            ['link', 'image'], // Basic options
+            ['clean'] // Remove formatting button
+        ]
+    };
+
+    // Formats supported by the Quill editor
+    const formats = [
+        'header', 'list', 'bullet', 'bold', 'italic', 'underline', 'link', 'image'
+    ];
 
     useEffect(() => {
         fetchServices();
@@ -20,16 +38,9 @@ export default function ServiceCardText() {
     // Fetch service card text data from the API
     const fetchServices = async () => {
         try {
-            console.log('Fetching service card data...');
             const response = await fetch('/api/service-card-text');
             const data = await response.json();
-            console.log('Received service data:', data);
-
-            if (data && data.length > 0) {
-                setServices(data);
-            } else {
-                console.warn('No service card data found.');
-            }
+            setServices(data);
         } catch (error) {
             console.error('Error fetching services:', error);
         }
@@ -37,29 +48,26 @@ export default function ServiceCardText() {
 
     // Handle editing mode and setting fields
     const handleEdit = (service) => {
-        console.log('Editing service:', service);
-        setEditing(service.id); // Set editing mode to the service ID
+        setEditing(service.id);
         setDescription(service.description);
         setImageUrl(service.image_url);
         setServiceName(service.name);
-        setStatus(service.status || 'Y'); // Set status
-        setInfo(service.info || ''); // Set info
+        setStatus(service.status || 'Y');
+        setInfo(service.info || ''); // Set rich text info
     };
 
     // Save or update service data and upload image to S3
     const handleSave = async (id) => {
         try {
-            console.log('Saving service with ID:', id);
             const formData = new FormData();
-            formData.append('id', id); // Ensure the ID is passed when editing
+            formData.append('id', id);
             formData.append('name', serviceName);
             formData.append('description', description);
-            formData.append('status', status); // Append status
-            formData.append('info', info); // Append info
+            formData.append('status', status);
+            formData.append('info', info); // Send rich text (HTML) content
 
             if (imageFile) {
-                formData.append('file', imageFile); // Append the file directly
-                console.log('Attached image file:', imageFile);
+                formData.append('file', imageFile);
             }
 
             const response = await fetch('/api/service-card-text', {
@@ -71,7 +79,6 @@ export default function ServiceCardText() {
                 throw new Error('Failed to save service');
             }
 
-            console.log('Service saved successfully:', id);
             setEditing(null);
             fetchServices();
         } catch (error) {
@@ -83,7 +90,6 @@ export default function ServiceCardText() {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setImageFile(file);
-        console.log('Selected image file:', file);
     };
 
     return (
@@ -118,24 +124,29 @@ export default function ServiceCardText() {
                                     >
                                         <option value="Y">Y</option>
                                         <option value="N">N</option>
-                                    </select> {/* Dropdown for status */}
-                                    <textarea
-                                        className="card-input"
+                                    </select>
+
+                                    {/* ReactQuill for Additional Info without color options */}
+                                    <ReactQuill
                                         value={info}
-                                        placeholder="Enter Additional Info (optional)"
-                                        onChange={(e) => setInfo(e.target.value)}
+                                        onChange={setInfo}
+                                        modules={modules} // Updated modules without color options
+                                        formats={formats} // Updated formats without color options
+                                        className="card-input"
+                                        placeholder="Enter Additional Info"
                                     />
+
                                     <input
                                         type="file"
                                         className="card-input"
                                         onChange={handleImageChange}
-                                    /> {/* Image upload */}
+                                    />
                                 </>
                             ) : (
                                 <>
                                     <p className="card-description">{service.description}</p>
-                                    <p className="card-info">Info: {service.info || 'N/A'}</p> {/* Display info */}
-                                    <p className="card-status">Status: {service.status || 'Y'}</p> {/* Display status */}
+                                    <p className="card-info">Info: <div dangerouslySetInnerHTML={{ __html: service.info || 'N/A' }} /></p> {/* Render HTML content */}
+                                    <p className="card-status">Status: {service.status || 'Y'}</p>
                                 </>
                             )}
                             <footer className="card-footer">
@@ -180,13 +191,18 @@ export default function ServiceCardText() {
                         >
                             <option value="Y">Y</option>
                             <option value="N">N</option>
-                        </select> {/* Dropdown for status */}
-                        <textarea
-                            className="dialog-input"
+                        </select>
+
+                        {/* ReactQuill in Dialog for Info without color options */}
+                        <ReactQuill
                             value={info}
-                            placeholder="Enter Additional Info (optional)"
-                            onChange={(e) => setInfo(e.target.value)}
+                            onChange={setInfo}
+                            modules={modules} // Updated modules without color options
+                            formats={formats} // Updated formats without color options
+                            className="dialog-input"
+                            placeholder="Enter Additional Info"
                         />
+
                         <input
                             type="file"
                             className="dialog-input"

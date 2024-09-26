@@ -8,7 +8,7 @@ export default function ProductCardText() {
     const [imageFile, setImageFile] = useState({
         file: null,
         id: null
-    }); // Handle file uploads
+    });
     const [productName, setProductName] = useState(''); 
     const [status, setStatus] = useState(''); // Added for status column
     const [showDialog, setShowDialog] = useState(false); // Control the dialog visibility

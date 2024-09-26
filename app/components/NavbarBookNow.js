@@ -18,7 +18,7 @@ const NavbarBookNow = () => {
             <nav className={styles.navbarCenter}>
                 <Link href="/login" className={styles.navLink}>About us</Link>
                 <Link href="/offers" className={styles.navLink}>Offers</Link>
-                <Link href="/service" className={styles.navLink}>Service</Link>
+                <Link href="/services" className={styles.navLink}>Service</Link>
                 <Link href="/products" className={styles.navLink}>Products</Link>
                 <div className={styles.navLinkWithIcon}>
                     <Image

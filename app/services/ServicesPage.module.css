@@ -1,0 +1,129 @@
+/* app/services/ServicesPage.module.css */
+.servicesPage {
+    width: 100%;
+    background-color: #ffffff;
+    display: block;
+    /* Changed to block to prevent flex issues */
+}
+
+.serviceDetail {
+    width: 100%;
+    max-width: 1230px;
+    /* Center and control the width of service detail */
+    background: #fff;
+    border: 1px solid #EC008B;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0px 5.17px 5.17px 0px #00000040;
+    margin: 0 auto;
+    /* Center the container horizontally */
+}
+
+.serviceDetailContent {
+    display: flex;
+    flex-direction: row;
+    /* Keep image and description side by side */
+    align-items: flex-start;
+    /* Align items at the top */
+    gap: 20px;
+    /* Space between image and text */
+    margin-bottom: 20px;
+    /* Space below main content */
+}
+
+.imageContainer {
+    flex: 1;
+    /* Take up 1 part of the row */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 554.68px;
+    height: 421.63px;
+    border-radius: 31.02px;
+}
+
+.detailImage {
+    width: 554.68px;
+    height: 421.63px;
+}
+
+.textContent {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detailTitle {
+    color: #EC008B;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 43.2px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.detailDescription {
+    width: 523.76px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 29.98px;
+    text-align: left;
+    color: #525252;
+}
+
+.detailInfo {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 29.98px;
+    text-align: left;
+    color: #6B6B6B;
+}
+
+.additionalInfo {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.bookButton {
+    width: 393.52px;
+height: 78.7px;
+border-radius: 22.49px;
+font-size: 24px;
+font-weight: 700;
+line-height: 28.8px;
+text-align: center;
+
+    background-color: #EC008B;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.bookButton:hover {
+    background-color: #C00773;
+    /* Darker shade for hover */
+}
+
+.servicesSectionWrapper {
+    width: 100%;
+    /* Ensure the wrapper takes the full width */
+    display: flex;
+    justify-content: center;
+}
+
+.servicesContainer {
+    width: 100%;
+    /* Ensure the container takes the full width */
+    max-width: 100%;
+    /* Remove max-width limitation */
+    overflow: hidden;
+    /* Hide overflow for carousel */
+}

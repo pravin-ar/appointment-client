@@ -1,0 +1,13 @@
+/* Custom styles for headers in the ReactQuill editor and rendered content */
+.ql-editor h1, .ql-editor h2, .ql-editor h3, 
+.rendered-content h1, .rendered-content h2, .rendered-content h3 {
+    color: #008DC0 !important; /* Header color */
+    font-size: 32px !important; /* Header font size */
+    font-weight: 700 !important; /* Header font weight */
+}
+
+/* Custom styles for lists in the ReactQuill editor and rendered content */
+.ql-editor ul, .ql-editor ol, 
+.rendered-content ul, .rendered-content ol {
+    padding-left: 50px; /* Remove default padding */
+}
