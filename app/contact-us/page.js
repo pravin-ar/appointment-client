@@ -2,6 +2,7 @@
 "use client"; // Ensures this is a Client Component
 
 import Head from 'next/head';
+import Image from 'next/image'; // Import the Image component from next/image
 import { useEffect, useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 import Footer from '../components/Footer'; // Import the Footer component
@@ -57,33 +58,38 @@ export default function BookNow() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.fullName || !formData.email || !selectedDate || !formData.timeSlot || !dob || !formData.phoneNumber || selectedServices.length === 0) {
-            alert("Please fill all fields before booking.");
+    
+        if (!formData.fullName || !formData.email || !formData.phoneNumber) {
+            alert("Please fill all required fields before submitting.");
             return;
         }
-
+    
         try {
-            const res = await fetch('/api/submit-booking', {
+            const res = await fetch('/api/contact-us', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...formData, datePicker: selectedDate, dob: dob, selectedServices }),
+                body: JSON.stringify(formData),
             });
-
+    
             const data = await res.json();
-
-            if (res.status === 200 && data.url) {
-                window.location.href = data.url;
-            } else if (res.ok) {
-                setShowDialog(true);
+    
+            if (res.status === 200) {
+                alert("Your message has been sent successfully!");
+                setFormData({
+                    fullName: '',
+                    email: '',
+                    phoneNumber: '',
+                    additionalInfo: ''
+                });
             } else {
                 alert(`Error: ${data.error}`);
             }
         } catch (error) {
             console.error('Error during submission:', error);
-            alert('An error occurred while submitting the booking. Please try again later.');
+            alert('An error occurred while sending your message. Please try again later.');
         }
     };
+    
 
     const handleCloseDialog = () => {
         setShowDialog(false);
@@ -116,9 +122,8 @@ export default function BookNow() {
                 <link rel="stylesheet" href="/styles/styles.css" />
             </Head>
             <div className={styles.bookNowPage}>
-                <h1 className={styles.pageTitle}>Book an Appointment</h1>
-                <p className={styles.pageSubtitle}>Would you like to schedule an appointment? Please provide us with your information.</p>
-                
+                <h1 className={styles.pageTitle}>Contact Us</h1>
+                <p className={styles.pageSubtitle}>Please feel free to contact us any time we will get back to you as soon as possible.</p>
                 <form className={styles.bookingForm} onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
                         <label htmlFor="fullName" className={styles.formLabel}>Enter your name</label>
@@ -146,33 +151,28 @@ export default function BookNow() {
                             required
                         />
                     </div>
-                    <div className={`${styles.formGroup} ${styles.serviceGroup}`}>
-                        <label className={styles.formLabel}>What type of service would you like to receive?</label>
-                        <div className={styles.servicesContainer}>
-                            {serviceData.map((service) => (
-                                <button
-                                    type="button"
-                                    key={service.name}
-                                    className={`${styles.serviceBtn} ${selectedServices.includes(service.name) ? styles.active : ''}`}
-                                    onClick={() => toggleServiceSelection(service.name)}
-                                >
-                                    <div
-                                        className={styles.iconContainer}
-                                        style={{
-                                            filter: selectedServices.includes(service.name) ? 'invert(100%)' : 'none',
-                                        }}
-                                    >
-                                        <img src={service.icon} alt={service.name} className={styles.icon} />
-                                    </div>
-                                    <span
-                                        style={{
-                                            color: selectedServices.includes(service.name) ? '#FFFFFF' : '#959595',
-                                        }}
-                                    >
-                                        {service.name}
-                                    </span>
-                                </button>
-                            ))}
+                    <div className={styles.formGroup}>
+                        <label htmlFor="phoneNumber" className={styles.formLabel}>Your mobile number</label>
+                        <div className={styles.phoneNumberGroup}>
+                            <div className={styles.countryCodeContainer}>
+                                <span>+91</span>
+                                <Image
+                                    src="/assets/images/india_flag.png" // Replace with your country flag path
+                                    alt="India Flag"
+                                    width={24}
+                                    height={15}
+                                />
+                            </div>
+                            <input
+                                type="tel"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                placeholder="91461 10405"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className={styles.inputFieldPhoneNumber}
+                                required
+                            />
                         </div>
                     </div>
                     <div className={styles.formGroup}>
