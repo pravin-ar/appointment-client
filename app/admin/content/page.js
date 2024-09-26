@@ -25,6 +25,9 @@ export default function ContentPage() {
                         <Link href="/admin/content/service-card-text">
                             <button className="admin-btn">Service Card Text</button>
                         </Link>
+                        <Link href="/admin/content/product-type">
+                            <button className="admin-btn">Product Type</button>
+                        </Link>
                     </div>
                 </section>
             </div>

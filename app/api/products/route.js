@@ -49,6 +49,8 @@ export async function GET() {
                 p.id, 
                 p.name, 
                 p.description, 
+                p.price, /* Added price field */
+                p.type, /* Added type field */
                 p.status,
                 p.create_at, 
                 p.update_at, 
@@ -86,14 +88,16 @@ export async function POST(req) {
         const formData = await req.formData();
         const name = formData.get("name");
         const description = formData.get("description");
+        const price = formData.get("price"); // Get price from form data
+        const type = formData.get("type"); // Get type from form data
         const status = formData.get("status"); // Get status from form data
         const file = formData.get("file");
 
-        console.log('Received data for new product:', { name, description, status });
+        console.log('Received data for new product:', { name, description, price, type, status });
 
-        if (!name || !description || !status) {
-            console.warn('Missing required fields:', { name, description, status });
-            return new Response(JSON.stringify({ error: 'Name, Description, and Status are required' }), {
+        if (!name || !description || !price || !type || !status) {
+            console.warn('Missing required fields:', { name, description, price, type, status });
+            return new Response(JSON.stringify({ error: 'Name, Description, Price, Type, and Status are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -101,11 +105,11 @@ export async function POST(req) {
 
         // Format the date as `YYYY-MM-DD`
         const createAt = new Date().toISOString().split('T')[0];
-        console.log(`Inserting into kr_dev.products with name: ${name}, description: ${description}, status: ${status}, create_at: ${createAt}`);
+        console.log(`Inserting into kr_dev.products with name: ${name}, description: ${description}, price: ${price}, type: ${type}, status: ${status}, create_at: ${createAt}`);
 
         const [productResult] = await connection.execute(
-            'INSERT INTO kr_dev.products (name, description, status, create_at) VALUES (?, ?, ?, ?)',
-            [name, description, status, createAt]
+            'INSERT INTO kr_dev.products (name, description, price, type, status, create_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, description, price, type, status, createAt]
         );
 
         const productId = productResult.insertId;
@@ -156,14 +160,16 @@ export async function PUT(req) {
         const id = formData.get("id");
         const name = formData.get("name");
         const description = formData.get("description");
+        const price = formData.get("price"); // Get price from form data
+        const type = formData.get("type"); // Get type from form data
         const status = formData.get("status"); // Get status from form data
         const file = formData.get("file");
 
-        console.log('Received data for updating product:', { id, name, description, status });
+        console.log('Received data for updating product:', { id, name, description, price, type, status });
 
-        if (!id || !name || !description || !status) {
-            console.warn('Missing required fields:', { id, name, description, status });
-            return new Response(JSON.stringify({ error: 'ID, Name, Description, and Status are required' }), {
+        if (!id || !name || !description || !price || !type || !status) {
+            console.warn('Missing required fields:', { id, name, description, price, type, status });
+            return new Response(JSON.stringify({ error: 'ID, Name, Description, Price, Type, and Status are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -173,10 +179,10 @@ export async function PUT(req) {
         const updateAt = new Date().toISOString().split('T')[0];
 
         // Update product details
-        console.log(`Updating kr_dev.products with name: ${name}, description: ${description}, status: ${status}, update_at: ${updateAt}, id: ${id}`);
+        console.log(`Updating kr_dev.products with name: ${name}, description: ${description}, price: ${price}, type: ${type}, status: ${status}, update_at: ${updateAt}, id: ${id}`);
         const [productUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.products SET name = ?, description = ?, status = ?, update_at = ? WHERE id = ?',
-            [name, description, status, updateAt, id]
+            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, status = ?, update_at = ? WHERE id = ?',
+            [name, description, price, type, status, updateAt, id]
         );
 
         console.log('Product update result:', productUpdateResult);
