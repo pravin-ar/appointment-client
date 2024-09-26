@@ -49,12 +49,12 @@ export async function GET() {
                 p.id, 
                 p.name, 
                 p.description, 
-                p.price, /* Added price field */
-                p.type, /* Added type field */
+                p.price,
+                p.type,
                 p.status,
                 p.create_at, 
                 p.update_at, 
-                i.path AS image_url 
+                JSON_ARRAYAGG(i.path) AS image_urls
             FROM 
                 kr_dev.products p 
             LEFT JOIN 
@@ -63,6 +63,8 @@ export async function GET() {
                 p.id = i.category_id 
             AND 
                 i.category = 'product'
+            GROUP BY 
+                p.id
         `);
         console.log('Fetched Product Data:', results);
 
@@ -81,19 +83,16 @@ export async function GET() {
     }
 }
 
-// POST method to add a new product and store image URL
+// POST method to add a new product and store multiple image URLs
 export async function POST(req) {
     const connection = await createConnection();
     try {
         const formData = await req.formData();
         const name = formData.get("name");
         const description = formData.get("description");
-        const price = formData.get("price"); // Get price from form data
-        const type = formData.get("type"); // Get type from form data
-        const status = formData.get("status"); // Get status from form data
-        const file = formData.get("file");
-
-        console.log('Received data for new product:', { name, description, price, type, status });
+        const price = formData.get("price");
+        const type = formData.get("type");
+        const status = formData.get("status");
 
         if (!name || !description || !price || !type || !status) {
             console.warn('Missing required fields:', { name, description, price, type, status });
@@ -103,56 +102,56 @@ export async function POST(req) {
             });
         }
 
-        // Format the date as `YYYY-MM-DD`
         const createAt = new Date().toISOString().split('T')[0];
-        console.log(`Inserting into kr_dev.products with name: ${name}, description: ${description}, price: ${price}, type: ${type}, status: ${status}, create_at: ${createAt}`);
-
         const [productResult] = await connection.execute(
             'INSERT INTO kr_dev.products (name, description, price, type, status, create_at) VALUES (?, ?, ?, ?, ?, ?)',
             [name, description, price, type, status, createAt]
         );
 
         const productId = productResult.insertId;
-        console.log('Product inserted with ID:', productId);
+        const imageFiles = [];
 
-        let imageUrl = null;
+        // Collect all file entries from formData
+        for (const [key, value] of formData.entries()) {
+            if (key.startsWith('file')) {
+                imageFiles.push(value);
+            }
+        }
 
-        if (file) {
-            // Read file content for upload
+        const imageUrls = [];
+
+        // Upload each image and store its URL in the images table
+        for (const [index, file] of imageFiles.entries()) {
             const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-            // Set up S3 upload parameters
-            const imageName = `products/${productId}-${Date.now()}.jpg`; // Adjust the extension as needed
+            const imageName = `products/${productId}-${index}-${Date.now()}.jpg`;
             await uploadFileToS3(fileBuffer, imageName);
-            imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
-            console.log('Image uploaded to S3 at URL:', imageUrl);
+            const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
+            imageUrls.push(imageUrl);
 
-            // Store image URL in the images table
-            const [imageResult] = await connection.execute(
+            // Insert image URL into the database
+            await connection.execute(
                 'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
                 ["product", productId, imageUrl, createAt]
             );
-
-            console.log('Image record inserted into kr_dev.images with ID:', imageResult.insertId);
         }
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Product and image added successfully', productId, imageUrl }), {
+        return new Response(JSON.stringify({ message: 'Product and images added successfully', productId, imageUrls }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        console.error('Error adding new product and image:', error);
+        console.error('Error adding new product and images:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to add product and image' }), {
+        return new Response(JSON.stringify({ error: 'Failed to add product and images' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 }
 
-// PUT method to update an existing product and its image URL
+// PUT method to update an existing product and its image URLs
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -160,12 +159,9 @@ export async function PUT(req) {
         const id = formData.get("id");
         const name = formData.get("name");
         const description = formData.get("description");
-        const price = formData.get("price"); // Get price from form data
-        const type = formData.get("type"); // Get type from form data
-        const status = formData.get("status"); // Get status from form data
-        const file = formData.get("file");
-
-        console.log('Received data for updating product:', { id, name, description, price, type, status });
+        const price = formData.get("price");
+        const type = formData.get("type");
+        const status = formData.get("status");
 
         if (!id || !name || !description || !price || !type || !status) {
             console.warn('Missing required fields:', { id, name, description, price, type, status });
@@ -175,17 +171,13 @@ export async function PUT(req) {
             });
         }
 
-        // Format the date as `YYYY-MM-DD`
         const updateAt = new Date().toISOString().split('T')[0];
 
         // Update product details
-        console.log(`Updating kr_dev.products with name: ${name}, description: ${description}, price: ${price}, type: ${type}, status: ${status}, update_at: ${updateAt}, id: ${id}`);
         const [productUpdateResult] = await connection.execute(
             'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, status = ?, update_at = ? WHERE id = ?',
             [name, description, price, type, status, updateAt, id]
         );
-
-        console.log('Product update result:', productUpdateResult);
 
         if (productUpdateResult.affectedRows === 0) {
             console.warn(`No product found with ID: ${id}`);
@@ -195,109 +187,47 @@ export async function PUT(req) {
             });
         }
 
-        // Check for existing image URL
-        let imageUrl = null;
-        const [existingImage] = await connection.execute(
-            'SELECT path FROM kr_dev.images WHERE category = ? AND category_id = ?',
-            ["product", id]
-        );
-
-        if (existingImage.length > 0) {
-            imageUrl = existingImage[0].path; // Use existing image URL if available
-            console.log('Existing image URL:', imageUrl);
-        } else {
-            console.log('No existing image found for product ID:', id);
+        // Remove existing images if there are new images uploaded
+        const imageFiles = [];
+        for (const [key, value] of formData.entries()) {
+            if (key.startsWith('file')) {
+                imageFiles.push(value);
+            }
         }
 
-        // If a new file is provided, update the image URL
-        if (file) {
-            // Read file content for upload
-            const fileBuffer = Buffer.from(await file.arrayBuffer());
+        // If new files are uploaded, remove the old ones from the database
+        if (imageFiles.length > 0) {
+            console.log('Removing old images for product ID:', id);
+            await connection.execute('DELETE FROM kr_dev.images WHERE category = ? AND category_id = ?', ["product", id]);
 
-            // Set up S3 upload parameters for the updated image
-            const imageName = `products/${id}-${Date.now()}.jpg`; // Adjust the extension as needed
-            await uploadFileToS3(fileBuffer, imageName);
-            imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
-            console.log('Updated image uploaded to S3 at URL:', imageUrl);
+            // Upload each new image and store its URL in the images table
+            const imageUrls = [];
+            for (const [index, file] of imageFiles.entries()) {
+                const fileBuffer = Buffer.from(await file.arrayBuffer());
+                const imageName = `products/${id}-${index}-${Date.now()}.jpg`;
+                await uploadFileToS3(fileBuffer, imageName);
+                const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
+                imageUrls.push(imageUrl);
 
-            // Update or insert image URL in the images table
-            if (existingImage.length > 0) {
-                // Update existing image record
-                console.log(`Updating kr_dev.images with path: ${imageUrl}, update_at: ${updateAt} for product id: ${id}`);
-                const [imageUpdateResult] = await connection.execute(
-                    'UPDATE kr_dev.images SET path = ?, update_at = ? WHERE category = ? AND category_id = ?',
-                    [imageUrl, updateAt, "product", id]
-                );
-                console.log('Image update result:', imageUpdateResult);
-            } else {
-                // Insert new image record if not existing
-                console.log(`Inserting new image entry for product ID: ${id}.`);
-                const [newImageResult] = await connection.execute(
+                // Insert new image URLs into the database
+                await connection.execute(
                     'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
                     ["product", id, imageUrl, updateAt]
                 );
-                console.log('New image record inserted into kr_dev.images with ID:', newImageResult.insertId);
             }
-        } else {
-            console.log('No new image file provided, keeping the old image.');
+            console.log('Updated images for product ID:', id);
         }
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Product and image updated successfully', imageUrl }), {
+        return new Response(JSON.stringify({ message: 'Product and images updated successfully' }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        console.error('Error updating product and image:', error);
+        console.error('Error updating product and images:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to update product and image' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    }
-}
-
-// DELETE method to remove a product by ID
-export async function DELETE(req) {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-        return new Response(JSON.stringify({ error: 'Product ID is required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    }
-
-    const connection = await createConnection();
-    try {
-        console.log(`Deleting product with ID: ${id}`);
-
-        const [result] = await connection.execute('DELETE FROM kr_dev.products WHERE id = ?', [id]);
-
-        if (result.affectedRows === 0) {
-            console.warn(`No product found with ID: ${id}`);
-            return new Response(JSON.stringify({ error: 'Product not found' }), {
-                status: 404,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // Remove associated image entry
-        await connection.execute('DELETE FROM kr_dev.images WHERE category = ? AND category_id = ?', ["product", id]);
-        console.log('Product and associated image deleted successfully.');
-
-        await connection.end();
-
-        return new Response(JSON.stringify({ message: 'Product deleted successfully' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to delete product' }), {
+        return new Response(JSON.stringify({ error: 'Failed to update product and images' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

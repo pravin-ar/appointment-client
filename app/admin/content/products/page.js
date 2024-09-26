@@ -1,16 +1,13 @@
 "use client";
 import { useEffect, useState } from 'react';
-import styles from './ProductCardText.module.css'; // Assuming you have a CSS module for styling
+import styles from './ProductCardText.module.css';
 
 export default function ProductCardText() {
     const [products, setProducts] = useState([]);
-    const [editingProduct, setEditingProduct] = useState(null); // Store the product being edited
-    const [productTypes, setProductTypes] = useState([]); // List of Product Types from DB
-    const [imageFile, setImageFile] = useState({
-        file: null,
-        id: null
-    });
-    const [showDialog, setShowDialog] = useState(false); // Control the dialog visibility
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [productTypes, setProductTypes] = useState([]);
+    const [imageFiles, setImageFiles] = useState([{ file: null, id: null }]);
+    const [showDialog, setShowDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',
         description: '',
@@ -21,24 +18,23 @@ export default function ProductCardText() {
 
     useEffect(() => {
         fetchProducts();
-        fetchProductTypes(); // Fetch product types from the database
+        fetchProductTypes();
     }, []);
 
-    // Fetch product data from the API
     const fetchProducts = async () => {
         try {
             const response = await fetch('/api/products');
             const data = await response.json();
+            console.log('Fetched Products:', data); // Log products to verify image URLs
             setProducts(data);
         } catch (error) {
             console.error('Error fetching products:', error);
         }
     };
 
-    // Fetch product types data from the API
     const fetchProductTypes = async () => {
         try {
-            const response = await fetch('/api/product-type'); // Adjust API endpoint as needed
+            const response = await fetch('/api/product-type');
             const data = await response.json();
             setProductTypes(data);
         } catch (error) {
@@ -46,7 +42,6 @@ export default function ProductCardText() {
         }
     };
 
-    // Handle opening of the edit dialog
     const handleEdit = (product) => {
         setEditingProduct(product);
         setNewProduct({
@@ -56,12 +51,12 @@ export default function ProductCardText() {
             type: product.type,
             status: product.status === 'Y'
         });
-        setShowDialog(true); // Open the dialog
+        setImageFiles([{ file: null, id: product.id }]);
+        setShowDialog(true);
     };
 
-    // Handle opening of the add dialog
     const handleAdd = () => {
-        setEditingProduct(null); // No product is being edited
+        setEditingProduct(null);
         setNewProduct({
             name: '',
             description: '',
@@ -69,19 +64,23 @@ export default function ProductCardText() {
             type: '',
             status: false
         });
-        setShowDialog(true); // Open the dialog for adding new product
+        setImageFiles([{ file: null, id: null }]);
+        setShowDialog(true);
     };
 
-    // Handle image file change
-    const handleImageChange = (e) => {
+    const handleImageChange = (e, index) => {
         const file = e.target.files[0];
-        setImageFile({
-            file: file,
-            id: editingProduct ? editingProduct.id : null
+        setImageFiles((prev) => {
+            const updatedFiles = [...prev];
+            updatedFiles[index] = { file, id: editingProduct ? editingProduct.id : null };
+            return updatedFiles;
         });
     };
 
-    // Handle field changes in the dialog
+    const addNewImageField = () => {
+        setImageFiles((prev) => [...prev, { file: null, id: editingProduct ? editingProduct.id : null }]);
+    };
+
     const handleFieldChange = (e) => {
         const { name, value, type, checked } = e.target;
         setNewProduct((prev) => ({
@@ -90,27 +89,27 @@ export default function ProductCardText() {
         }));
     };
 
-    // Save the edited or new product details
     const handleSave = async () => {
         try {
-            const formData = new FormData(); // Using FormData to handle file uploads
+            const formData = new FormData();
             if (editingProduct) {
-                formData.append('id', editingProduct.id); // Append ID if editing
+                formData.append('id', editingProduct.id);
             }
             formData.append('name', newProduct.name);
             formData.append('description', newProduct.description);
-            formData.append('price', newProduct.price); // Append price field
-            formData.append('type', newProduct.type); // Append product type field
-            formData.append('status', newProduct.status ? 'Y' : 'N'); // Convert boolean to "Y"/"N"
-            
-            if (imageFile.file) {
-                formData.append('file', imageFile.file); // Append the file directly
-                console.log('Attached image file:', imageFile.file);
-            }
+            formData.append('price', newProduct.price);
+            formData.append('type', newProduct.type);
+            formData.append('status', newProduct.status ? 'Y' : 'N');
+
+            imageFiles.forEach((imageObj, index) => {
+                if (imageObj.file) {
+                    formData.append(`file${index}`, imageObj.file);
+                }
+            });
 
             const response = await fetch('/api/products', {
-                method: editingProduct ? 'PUT' : 'POST', // Use PUT for editing and POST for adding
-                body: formData, // Use FormData as the request body
+                method: editingProduct ? 'PUT' : 'POST',
+                body: formData,
             });
 
             if (!response.ok) {
@@ -118,8 +117,8 @@ export default function ProductCardText() {
             }
 
             setEditingProduct(null);
-            setShowDialog(false); // Close the dialog after saving
-            fetchProducts(); // Refresh the products list
+            setShowDialog(false);
+            fetchProducts();
         } catch (error) {
             console.error(`Error ${editingProduct ? 'updating' : 'adding'} product:`, error);
         }
@@ -134,12 +133,17 @@ export default function ProductCardText() {
                         <article key={product.id} className="card">
                             <header className="card-header">
                                 <h2 className="card-title">{product.name}</h2>
-                                <img src={product.image_url} alt={product.name} className="card-image" /> {/* Display image */}
+                                {/* Display the first image from image_urls array */}
+                                {product.image_urls && product.image_urls.length > 0 ? (
+                                    <img src={product.image_urls[0]} alt={product.name} className="card-image" />
+                                ) : (
+                                    <p>No image available</p>
+                                )}
                             </header>
                             <p className="card-description">{product.description}</p>
-                            <p className="card-price">Price: £{product.price}</p> {/* Display price */}
-                            <p className="card-type">Type: {product.type}</p> {/* Display product type */}
-                            <p className="card-status"><strong>Status: </strong>{product.status === 'Y' ? 'Active' : 'Inactive'}</p> {/* Display status */}
+                            <p className="card-price">Price: £{product.price}</p>
+                            <p className="card-type">Type: {product.type}</p>
+                            <p className="card-status"><strong>Status: </strong>{product.status === 'Y' ? 'Active' : 'Inactive'}</p>
                             <footer className="card-footer">
                                 <button className="btn edit-btn" onClick={() => handleEdit(product)}>Edit</button>
                             </footer>
@@ -150,14 +154,12 @@ export default function ProductCardText() {
                 )}
             </div>
 
-            {/* Add Product Button */}
             <div className="add-card-container">
                 <button className="btn add-btn" onClick={handleAdd}>
                     Add Product
                 </button>
             </div>
 
-            {/* Add/Edit Dialog */}
             {showDialog && (
                 <div className={styles.dialogOverlay}>
                     <div className={styles.dialog}>
@@ -184,7 +186,7 @@ export default function ProductCardText() {
                             value={newProduct.price}
                             placeholder="Enter Price"
                             onChange={handleFieldChange}
-                        /> {/* Price input */}
+                        />
                         <select
                             className={styles.dialogInput}
                             name="type"
@@ -195,7 +197,7 @@ export default function ProductCardText() {
                             {productTypes.map((type) => (
                                 <option key={type.id} value={type.type}>{type.type}</option>
                             ))}
-                        </select> {/* Product Type dropdown */}
+                        </select>
                         <div className={styles.dialogInput}>
                             <label>
                                 <input
@@ -205,12 +207,16 @@ export default function ProductCardText() {
                                     onChange={handleFieldChange}
                                 /> Active
                             </label>
-                        </div> {/* Status Toggle */}
-                        <input
-                            type="file"
-                            className={styles.dialogInput}
-                            onChange={handleImageChange} // Handle file input
-                        />
+                        </div>
+                        {imageFiles.map((imageObj, index) => (
+                            <div key={index} className={styles.dialogInput}>
+                                <input
+                                    type="file"
+                                    onChange={(e) => handleImageChange(e, index)}
+                                />
+                            </div>
+                        ))}
+                        <button className="btn" onClick={addNewImageField}>Add Another Image</button>
                         <div className={styles.dialogFooter}>
                             <button className="btn save-btn" onClick={handleSave}>Save</button>
                             <button className="btn cancel-btn" onClick={() => setShowDialog(false)}>Cancel</button>
