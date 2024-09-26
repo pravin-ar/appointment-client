@@ -6,7 +6,7 @@ export default function ProductCardText() {
     const [products, setProducts] = useState([]);
     const [editingProduct, setEditingProduct] = useState(null);
     const [productTypes, setProductTypes] = useState([]);
-    const [imageFiles, setImageFiles] = useState([{ file: null, id: null }]);
+    const [imageFiles, setImageFiles] = useState([{ file: null, id: null, path: '' }]);
     const [showDialog, setShowDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',
@@ -51,7 +51,15 @@ export default function ProductCardText() {
             type: product.type,
             status: product.status === 'Y'
         });
-        setImageFiles([{ file: null, id: product.id }]);
+
+        // Set existing images with their IDs and paths for preview
+        setImageFiles(
+            product.image_urls.map((img, index) => ({
+                file: null,
+                id: img.id, // Image ID for updating existing images
+                path: img.path, // Existing image path for preview
+            }))
+        );
         setShowDialog(true);
     };
 
@@ -64,7 +72,7 @@ export default function ProductCardText() {
             type: '',
             status: false
         });
-        setImageFiles([{ file: null, id: null }]);
+        setImageFiles([{ file: null, id: null, path: '' }]);
         setShowDialog(true);
     };
 
@@ -72,13 +80,13 @@ export default function ProductCardText() {
         const file = e.target.files[0];
         setImageFiles((prev) => {
             const updatedFiles = [...prev];
-            updatedFiles[index] = { file, id: editingProduct ? editingProduct.id : null };
+            updatedFiles[index] = { ...updatedFiles[index], file };
             return updatedFiles;
         });
     };
 
     const addNewImageField = () => {
-        setImageFiles((prev) => [...prev, { file: null, id: editingProduct ? editingProduct.id : null }]);
+        setImageFiles((prev) => [...prev, { file: null, id: null, path: '' }]);
     };
 
     const handleFieldChange = (e) => {
@@ -104,6 +112,7 @@ export default function ProductCardText() {
             imageFiles.forEach((imageObj, index) => {
                 if (imageObj.file) {
                     formData.append(`file${index}`, imageObj.file);
+                    formData.append(`image_id${index}`, imageObj.id); // Include image ID for update
                 }
             });
 
@@ -133,9 +142,13 @@ export default function ProductCardText() {
                         <article key={product.id} className="card">
                             <header className="card-header">
                                 <h2 className="card-title">{product.name}</h2>
+
+                                {/* Log product image URLs to check structure */}
+                                {console.log('Product Image URLs:', product.image_urls)}
+
                                 {/* Display the first image from image_urls array */}
-                                {product.image_urls && product.image_urls.length > 0 ? (
-                                    <img src={product.image_urls[0]} alt={product.name} className="card-image" />
+                                {product.image_urls && product.image_urls.length > 0 && product.image_urls[0].path ? (
+                                    <img src={product.image_urls[0].path} alt={product.name} className="card-image" />
                                 ) : (
                                     <p>No image available</p>
                                 )}
@@ -210,6 +223,9 @@ export default function ProductCardText() {
                         </div>
                         {imageFiles.map((imageObj, index) => (
                             <div key={index} className={styles.dialogInput}>
+                                {imageObj.path && (
+                                    <img src={imageObj.path} alt="Existing" style={{ width: '100px', marginBottom: '10px' }} />
+                                )}
                                 <input
                                     type="file"
                                     onChange={(e) => handleImageChange(e, index)}

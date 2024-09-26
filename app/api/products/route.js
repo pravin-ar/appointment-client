@@ -39,7 +39,7 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch all product cards with their image URLs
+// Updated GET method to fetch products with image sequence
 export async function GET() {
     const connection = await createConnection();
     try {
@@ -54,19 +54,25 @@ export async function GET() {
                 p.status,
                 p.create_at, 
                 p.update_at, 
-                JSON_ARRAYAGG(i.path) AS image_urls
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT('path', i.path, 'sequence', i.sequence)
+                    )
+                    FROM kr_dev.images i
+                    WHERE i.category_id = p.id 
+                    AND i.category = 'product'
+                    ORDER BY i.sequence ASC
+                ) AS image_urls
             FROM 
                 kr_dev.products p 
-            LEFT JOIN 
-                kr_dev.images i 
-            ON 
-                p.id = i.category_id 
-            AND 
-                i.category = 'product'
             GROUP BY 
-                p.id
+                p.id;
         `);
-        console.log('Fetched Product Data:', results);
+
+        // Log each product with its image URLs properly formatted
+        results.forEach(product => {
+            console.log('Product:', product); // Log each product to verify the structure
+        });
 
         await connection.end();
         return new Response(JSON.stringify(results), {
@@ -83,7 +89,9 @@ export async function GET() {
     }
 }
 
-// POST method to add a new product and store multiple image URLs
+
+
+// Updated POST method to add sequence column for images
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -120,7 +128,7 @@ export async function POST(req) {
 
         const imageUrls = [];
 
-        // Upload each image and store its URL in the images table
+        // Upload each image and store its URL in the images table with sequence
         for (const [index, file] of imageFiles.entries()) {
             const fileBuffer = Buffer.from(await file.arrayBuffer());
             const imageName = `products/${productId}-${index}-${Date.now()}.jpg`;
@@ -128,10 +136,10 @@ export async function POST(req) {
             const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
             imageUrls.push(imageUrl);
 
-            // Insert image URL into the database
+            // Insert image URL into the database with sequence number
             await connection.execute(
-                'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
-                ["product", productId, imageUrl, createAt]
+                'INSERT INTO kr_dev.images (category, category_id, path, sequence, create_at) VALUES (?, ?, ?, ?, ?)',
+                ["product", productId, imageUrl, index + 1, createAt] // 'index + 1' is used for sequence
             );
         }
 
@@ -151,7 +159,8 @@ export async function POST(req) {
     }
 }
 
-// PUT method to update an existing product and its image URLs
+
+// PUT method to update an existing product and its image URLs without deleting old images
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -187,33 +196,36 @@ export async function PUT(req) {
             });
         }
 
-        // Remove existing images if there are new images uploaded
         const imageFiles = [];
+        const existingImageIds = [];
+
+        // Collect file entries and existing image IDs from formData
         for (const [key, value] of formData.entries()) {
             if (key.startsWith('file')) {
                 imageFiles.push(value);
             }
+            if (key.startsWith('image_id')) {
+                existingImageIds.push(value);
+            }
         }
 
-        // If new files are uploaded, remove the old ones from the database
+        // If new files are uploaded, update the existing images in the database
         if (imageFiles.length > 0) {
-            console.log('Removing old images for product ID:', id);
-            await connection.execute('DELETE FROM kr_dev.images WHERE category = ? AND category_id = ?', ["product", id]);
-
-            // Upload each new image and store its URL in the images table
             const imageUrls = [];
             for (const [index, file] of imageFiles.entries()) {
-                const fileBuffer = Buffer.from(await file.arrayBuffer());
-                const imageName = `products/${id}-${index}-${Date.now()}.jpg`;
-                await uploadFileToS3(fileBuffer, imageName);
-                const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
-                imageUrls.push(imageUrl);
+                if (file && existingImageIds[index]) {
+                    const fileBuffer = Buffer.from(await file.arrayBuffer());
+                    const imageName = `products/${id}-${index}-${Date.now()}.jpg`;
+                    await uploadFileToS3(fileBuffer, imageName);
+                    const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
+                    imageUrls.push(imageUrl);
 
-                // Insert new image URLs into the database
-                await connection.execute(
-                    'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
-                    ["product", id, imageUrl, updateAt]
-                );
+                    // Update the existing image URL in the database without changing the sequence
+                    await connection.execute(
+                        'UPDATE kr_dev.images SET path = ?, update_at = ? WHERE id = ?',
+                        [imageUrl, updateAt, existingImageIds[index]]
+                    );
+                }
             }
             console.log('Updated images for product ID:', id);
         }
@@ -233,6 +245,7 @@ export async function PUT(req) {
         });
     }
 }
+
 
 export const config = {
     api: {

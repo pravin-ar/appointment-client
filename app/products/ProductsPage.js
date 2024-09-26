@@ -1,4 +1,3 @@
-// app/products/ProductsPage.js
 "use client";
 import { useEffect, useState } from 'react';
 import styles from './ProductsPage.module.css'; // Import CSS module
@@ -52,7 +51,7 @@ const ProductsPage = () => {
         <>
             <div className={styles.pageStart}>
                 {/* Product Type Filter Buttons */}
-                < div className={styles.header} >
+                <div className={styles.header}>
                     <h1>Our Products</h1>
                     <p>
                         We offer a wide range of products, including stylish eyewear, high-performance sportswear, and comfortable contact lenses.
@@ -69,7 +68,7 @@ const ProductsPage = () => {
                             </button>
                         ))}
                     </div>
-                </div >
+                </div>
             </div>
             <div className={styles.productsPage}>
                 {/* Main Content */}
@@ -128,8 +127,12 @@ const ProductsPage = () => {
                             filteredProducts.map((product) => (
                                 <div key={product.id} className={styles.productCard}>
                                     <h3 className={styles.productName}>{product.name}</h3>
-                                    {product.image_urls && product.image_urls.length > 0 ? (
-                                        <img src={product.image_urls[0]} alt={product.name} className={styles.productImage} />
+                                    
+                                    {/* Log product image URLs to check structure */}
+                                    {console.log('Product Image URLs:', product.image_urls)}
+                                    
+                                    {product.image_urls && product.image_urls.length > 0 && product.image_urls[0].path ? (
+                                        <img src={product.image_urls[0].path} alt={product.name} className={styles.productImage} />
                                     ) : (
                                         <p>No image available</p>
                                     )}

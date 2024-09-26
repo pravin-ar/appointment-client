@@ -1,52 +1,52 @@
-// app/components/ProductsSection.js
 import { useEffect, useState } from 'react';
 import styles from './ProductsSection.module.css';
 
 export default function ProductsSection() {
-    const [products, setProducts] = useState([]);
+    const [productTypes, setProductTypes] = useState([]);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchProductTypes = async () => {
             try {
-                const response = await fetch('/api/products');
+                const response = await fetch('/api/product-type');
                 const data = await response.json();
-                setProducts(data);
+                setProductTypes(data);
             } catch (error) {
-                console.error('Error fetching products:', error);
+                console.error('Error fetching product types:', error);
             }
         };
-        fetchProducts();
+        fetchProductTypes();
     }, []);
 
-    // Only display up to 6 products
-    const displayedProducts = products.slice(0, 6);
+    // Only display up to 6 product types
+    const displayedProductTypes = productTypes.slice(0, 6);
 
     return (
         <section id="products" className={styles.productsSection}>
-            <h2 className={styles.sectionTitle}>Our Products</h2>
+            <h2 className={styles.sectionTitle}>Our Product Types</h2>
             <div className={styles.productsGrid}>
-                {displayedProducts.length > 0 ? (
-                    displayedProducts.map((product, index) => (
+                {displayedProductTypes.length > 0 ? (
+                    displayedProductTypes.map((type, index) => (
                         <div
-                            key={product.id}
+                            key={type.id}
                             className={`${styles.productCard} ${styles[`productCard${index + 1}`]}`}
                         >
                             <div className={styles.productImageWrapper}>
                                 <img
-                                    src={product.image_url}
-                                    alt={product.name}  // Corrected to use product.name
+                                    src={type.image_url}
+                                    alt={type.type}
                                     className={styles.productImage}
                                 />
                             </div>
                             <div className={styles.productContent}>
-                                <h3 className={styles.productTitle}>{product.name}</h3>
-                                <p className={styles.productDescription}>{product.description}</p>
+                                {/* Display product type name */}
+                                <h3 className={styles.productTitle}>{type.type}</h3>
+                                {/* Remove description as requested */}
                                 <button className={styles.readMoreBtn}>Read More</button>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <p className={styles.noProductsText}>No products available.</p>
+                    <p className={styles.noProductsText}>No product types available.</p>
                 )}
             </div>
             {/* Background Images */}
