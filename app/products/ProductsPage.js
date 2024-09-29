@@ -6,34 +6,35 @@ const ProductsPage = () => {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedType, setSelectedType] = useState("Bestsellers");
-    const [productTypes, setProductTypes] = useState([]); // State for product types
+    const [productTypes, setProductTypes] = useState([]);
+    const [selectedProduct, setSelectedProduct] = useState(null); // State for the selected product
+    const [currentLargeImage, setCurrentLargeImage] = useState(null); // State for the large image
 
+    // Fetch products and product types on component mount
     useEffect(() => {
-        // Fetch all products data once
         const fetchProducts = async () => {
             try {
                 const response = await fetch('/api/products');
                 const data = await response.json();
                 setProducts(data);
-                setFilteredProducts(data); // Initially show all products
+                setFilteredProducts(data); // Set initial products
             } catch (error) {
                 console.error('Error fetching products:', error);
             }
         };
 
-        // Fetch product types
         const fetchProductTypes = async () => {
             try {
-                const response = await fetch('/api/product-type'); // Adjust API endpoint as needed
+                const response = await fetch('/api/product-type');
                 const types = await response.json();
-                setProductTypes(types); // Set product types in state
+                setProductTypes(types); // Set available product types
             } catch (error) {
                 console.error('Error fetching product types:', error);
             }
         };
 
         fetchProducts();
-        fetchProductTypes(); // Fetch product types when component loads
+        fetchProductTypes();
     }, []);
 
     // Handle Product Type Filter Click
@@ -47,10 +48,26 @@ const ProductsPage = () => {
         }
     };
 
+    // Open Modal for Product
+    const openProductModal = (product) => {
+        setSelectedProduct(product);
+        setCurrentLargeImage(product.image_urls[0].path); // Set the initial large image to the first image
+    };
+
+    // Close Modal
+    const closeModal = () => {
+        setSelectedProduct(null); // Reset selected product
+        setCurrentLargeImage(null); // Reset large image
+    };
+
+    // Handle Thumbnail Click (to change large image)
+    const handleThumbnailClick = (imagePath) => {
+        setCurrentLargeImage(imagePath); // Update the large image when a thumbnail is clicked
+    };
+
     return (
         <>
             <div className={styles.pageStart}>
-                {/* Product Type Filter Buttons */}
                 <div className={styles.header}>
                     <h1>Our Products</h1>
                     <p>
@@ -71,7 +88,6 @@ const ProductsPage = () => {
                 </div>
             </div>
             <div className={styles.productsPage}>
-                {/* Main Content */}
                 <div className={styles.content}>
                     {/* Filter Sidebar */}
                     <div className={styles.sidebar}>
@@ -125,12 +141,8 @@ const ProductsPage = () => {
                     <div className={styles.productGrid}>
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((product) => (
-                                <div key={product.id} className={styles.productCard}>
+                                <div key={product.id} className={styles.productCard} onClick={() => openProductModal(product)}>
                                     <h3 className={styles.productName}>{product.name}</h3>
-                                    
-                                    {/* Log product image URLs to check structure */}
-                                    {console.log('Product Image URLs:', product.image_urls)}
-                                    
                                     {product.image_urls && product.image_urls.length > 0 && product.image_urls[0].path ? (
                                         <img src={product.image_urls[0].path} alt={product.name} className={styles.productImage} />
                                     ) : (
@@ -145,6 +157,41 @@ const ProductsPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal for Product Details */}
+            {selectedProduct && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalLeft}>
+                            {/* Large Image */}
+                            <img
+                                src={currentLargeImage}
+                                alt={selectedProduct.name}
+                                className={styles.largeImage}
+                            />
+                            {/* Thumbnails */}
+                            <div className={styles.thumbnailContainer}>
+                                {selectedProduct.image_urls.map((img, index) => (
+                                    <img
+                                        key={index}
+                                        src={img.path}
+                                        alt={`Thumbnail ${index}`}
+                                        className={styles.thumbnailImage}
+                                        onClick={() => handleThumbnailClick(img.path)} // On click, change the large image
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right Side Product Info */}
+                        <div className={styles.modalRight}>
+                            <h2>{selectedProduct.name}</h2>
+                            <p className={styles.modalPrice}>£{selectedProduct.price}</p>
+                            <button onClick={closeModal} className={styles.closeButton}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };
