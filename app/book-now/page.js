@@ -1,16 +1,20 @@
-// app/book-now/page.js
 "use client"; // Ensures this is a Client Component
 
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import Head from 'next/head';
-import Image from 'next/image'; // Import the Image component from next/image
+import Image from 'next/image'; // Import for image
+import { useRouter } from 'next/navigation'; // For redirection after clicking "Done"
 import { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css'; // Import the default styles
 import Footer from '../components/Footer'; // Import the Footer component
 import NavbarBookNow from '../components/NavbarBookNow'; // Import the Navbar component
 import styles from './BookNow.module.css'; // Import the custom CSS module
 
 export default function BookNow() {
+    const router = useRouter(); // For redirecting to the home page
     const [selectedDate, setSelectedDate] = useState(null);
     const [dob, setDob] = useState(null);
     const [timeSlots, setTimeSlots] = useState([]);
@@ -21,11 +25,13 @@ export default function BookNow() {
         datePicker: '',
         timeSlot: '',
         phoneNumber: '',
-        isNewUser: true // Default value is true
+        isNewUser: true, // Default value is true
+        selectedCountry: 'GB', // Default to UK country code
     });
 
+    const [errorMessage, setErrorMessage] = useState('');
     const [showDialog, setShowDialog] = useState(false);
-    const [isRedirecting, setIsRedirecting] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Added loading state
 
     useEffect(() => {
         if (selectedDate) {
@@ -53,8 +59,23 @@ export default function BookNow() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleToggle = () => {
-        setFormData({ ...formData, isNewUser: !formData.isNewUser });
+    const handlePhoneChange = (phone) => {
+        setFormData({ ...formData, phoneNumber: phone });
+
+        const parsedPhoneNumber = parsePhoneNumberFromString(phone || '', formData.selectedCountry);
+        if (parsedPhoneNumber && parsedPhoneNumber.isValid()) {
+            setErrorMessage('');
+        } else {
+            setErrorMessage('Invalid phone number');
+        }
+    };
+
+    const handleCountryChange = (phone) => {
+        const parsedPhoneNumber = parsePhoneNumberFromString(phone || '');
+        if (parsedPhoneNumber) {
+            const countryCode = parsedPhoneNumber.country || 'GB';
+            setFormData({ ...formData, selectedCountry: countryCode });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -64,6 +85,14 @@ export default function BookNow() {
             alert("Please fill all fields before booking.");
             return;
         }
+
+        if (errorMessage) {
+            alert("Please enter a valid phone number");
+            return;
+        }
+
+        setShowDialog(true); // Show the dialog
+        setIsLoading(true); // Show the loading state
 
         try {
             const res = await fetch('/api/submit-booking', {
@@ -77,19 +106,20 @@ export default function BookNow() {
             if (res.status === 200 && data.url) {
                 window.location.href = data.url;
             } else if (res.ok) {
-                setShowDialog(true);
+                setIsLoading(false); // Switch to "Thank You" view
             } else {
                 alert(`Error: ${data.error}`);
             }
         } catch (error) {
             console.error('Error during submission:', error);
             alert('An error occurred while submitting the booking. Please try again later.');
+            setShowDialog(false);
         }
     };
 
     const handleCloseDialog = () => {
         setShowDialog(false);
-        window.location.href = '/';
+        router.push('/'); // Redirect to home page after clicking "Done"
     };
 
     const toggleServiceSelection = (service) => {
@@ -111,7 +141,6 @@ export default function BookNow() {
 
     return (
         <>
-            {/* Include the Navbar component */}
             <NavbarBookNow />
             <Head>
                 <title>Book Now</title>
@@ -120,22 +149,8 @@ export default function BookNow() {
             <div className={styles.bookNowPage}>
                 <h1 className={styles.pageTitle}>Book an Appointment</h1>
                 <p className={styles.pageSubtitle}>Would you like to schedule an appointment? Please provide us with your information.</p>
-                <div className={styles.userTypeToggle}>
-                    <button
-                        type="button"
-                        className={`${styles.userTypeBtn} ${formData.isNewUser ? styles.active : ''}`}
-                        onClick={handleToggle}
-                    >
-                        I am a new user
-                    </button>
-                    <button
-                        type="button"
-                        className={`${styles.userTypeBtn} ${!formData.isNewUser ? styles.active : ''}`}
-                        onClick={handleToggle}
-                    >
-                        I am an existing user
-                    </button>
-                </div>
+                
+                {/* Form Fields */}
                 <form className={styles.bookingForm} onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
                         <label htmlFor="fullName" className={styles.formLabel}>Enter your name</label>
@@ -150,6 +165,7 @@ export default function BookNow() {
                             required
                         />
                     </div>
+
                     <div className={styles.formGroup}>
                         <label htmlFor="dob" className={styles.formLabel}>Your birth date</label>
                         <div className={styles.datePickerContainer}>
@@ -164,30 +180,25 @@ export default function BookNow() {
                             />
                         </div>
                     </div>
+
                     <div className={styles.formGroup}>
                         <label htmlFor="phoneNumber" className={styles.formLabel}>Your mobile number</label>
                         <div className={styles.phoneNumberGroup}>
-                            <div className={styles.countryCodeContainer}>
-                                <span>+91</span>
-                                <Image
-                                    src="/assets/images/india_flag.png" // Replace with your country flag path
-                                    alt="India Flag"
-                                    width={24}
-                                    height={15}
-                                />
-                            </div>
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                name="phoneNumber"
-                                placeholder="91461 10405"
+                            <PhoneInput
+                                defaultCountry="GB" // Default to UK
                                 value={formData.phoneNumber}
-                                onChange={handleChange}
-                                className={styles.inputFieldPhoneNumber}
-                                required
+                                onChange={handlePhoneChange}
+                                onCountryChange={handleCountryChange} // Track changes in the country
+                                placeholder="7444 123456" // Placeholder will change with country
+                                className={styles.inputFieldPhoneNumber} // Applying your existing class for styling
+                                international
                             />
                         </div>
+                        {errorMessage && (
+                            <p className={styles.errorMessage}>{errorMessage}</p>
+                        )}
                     </div>
+
                     <div className={styles.formGroup}>
                         <label htmlFor="email" className={styles.formLabel}>Your email id</label>
                         <input
@@ -201,6 +212,7 @@ export default function BookNow() {
                             required
                         />
                     </div>
+
                     <div className={styles.formGroup}>
                         <label htmlFor="datePicker" className={styles.formLabel}>Appointment Date</label>
                         <div className={styles.datePickerContainer}>
@@ -216,6 +228,7 @@ export default function BookNow() {
                             />
                         </div>
                     </div>
+
                     {selectedDate && (
                         <div className={styles.formGroup}>
                             <label htmlFor="timeSlot" className={styles.formLabel}>Your available slot</label>
@@ -262,25 +275,55 @@ export default function BookNow() {
                             ))}
                         </div>
                     </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>We like to hear more about you</label>
-                        <textarea
-                            className={styles.textarea} // Apply textarea class
-                            name="additionalInfo"
-                            placeholder="I like to do my eye check up"
-                            value={formData.additionalInfo || ''}
-                            onChange={handleChange}
-                        />
-                    </div>
+
                     <div className={styles.formActions}>
-                        <button type="button" className={styles.editBtn}>Edit</button>
-                        <button type="submit" className={styles.bookAppointmentBtn} disabled={isRedirecting}>
-                            {isRedirecting ? "Redirecting..." : "Book Appointment"}
+                        <button type="submit" className={styles.bookAppointmentBtn} disabled={isLoading}>
+                            {isLoading ? "Loading..." : "Book Appointment"}
                         </button>
                     </div>
                 </form>
+
+                {/* Show the dialog when the booking is successful */}
+                {showDialog && (
+                    <div className={styles.dialogOverlay}>
+                        <div className={styles.dialogBox}>
+                            {isLoading ? (
+                                <div>
+                                    <h2 className={styles.dialogTitle}>Booking in Progress...</h2>
+                                    <Image
+                                        src="/assets/images/loading_spinner.gif"
+                                        alt="Loading"
+                                        width={100}
+                                        height={100}
+                                        className={styles.dialogImage}
+                                    />
+                                </div>
+                            ) : (
+                                <>
+                                    <h2 className={styles.dialogTitle}>Thank You!</h2>
+                                    <p className={styles.dialogSubtitle}>Your appointment has been successfully booked!</p>
+                                    <Image
+                                        src="/assets/images/booking_success.png"
+                                        alt="Appointment booked"
+                                        width={150}
+                                        height={150}
+                                        className={styles.dialogImage}
+                                    />
+                                    <p className={styles.dialogText}>
+                                        <strong>Appointment Date: </strong> {selectedDate?.toLocaleDateString()}
+                                    </p>
+                                    <p className={styles.dialogText}>
+                                        <strong>Appointment Time: </strong> {formData.timeSlot}
+                                    </p>
+                                    <button className={styles.dialogButton} onClick={handleCloseDialog}>
+                                        Done
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
-            {/* Include the Footer component */}
             <Footer />
         </>
     );

@@ -1,8 +1,24 @@
 // app/components/Footer.js
+'use client'; // Ensure this is a client component
+
 import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useState } from 'react'; // Import useState and useEffect
 import styles from './Footer.module.css';
 
 const Footer = () => {
+    const [policies, setPolicies] = useState([]);
+
+    useEffect(() => {
+        const fetchPolicies = async () => {
+            const res = await fetch('/api/policies');
+            const data = await res.json();
+            setPolicies(data);
+        };
+
+        fetchPolicies();
+    }, []);
+
     return (
         <footer className={styles.footer}>
             <div className={styles.footerContainer}>
@@ -57,9 +73,13 @@ const Footer = () => {
                 <div className={styles.footerRight}>
                     <h3>Policies</h3>
                     <ul>
-                        <li><a href="#">Freedom of Information Act</a></li>
-                        <li><a href="#">NHS Notice Domiciliary</a></li>
-                        <li><a href="#">NHS Notice Patience</a></li>
+                        {policies.map(policy => (
+                            <li key={policy.id}>
+                                <Link href={`/policies/${policy.id}`}>
+                                    {policy.name}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
                 </div>
             </div>

@@ -120,17 +120,9 @@
     border: 2px solid #FF007F;
     border-radius: 15px;
     overflow: hidden;
-}
-
-.countryCodeContainer {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    background-color: #FFFFFF;
-    color: #FF007F;
-    font-weight: 600;
-    border-right: 2px solid #FF007F;
-    /* Border color to match input field */
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
 }
 
 .inputFieldPhoneNumber {
@@ -139,10 +131,17 @@
     border: none;
     outline: none;
     background-color: #ffffff;
-    /* White background */
     font-size: 16px;
     border-radius: 0 15px 15px 0;
+    height: auto;
 }
+
+.errorMessage {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
 
 .datePickerContainer {
     display: flex;
@@ -288,4 +287,78 @@
     background-color: #ff007f;
     color: #fff;
     text-align: center;
+}
+
+/* Dialog Overlay */
+.dialogOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Dialog Box */
+.dialogBox {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Dialog Title */
+.dialogTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+/* Dialog Subtitle */
+.dialogSubtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Dialog Image */
+.dialogImage {
+    margin-bottom: 20px;
+}
+
+/* Dialog Text */
+.dialogText {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 12px;
+}
+
+/* Dialog Button */
+.dialogButton {
+    background-color: #EC008B;
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dialogButton:hover {
+    background-color: #C00773;
+}
+
+/* Loading Spinner */
+.dialogBox .dialogImage {
+    margin-bottom: 20px;
+    width: 100px;
+    height: 100px;
 }

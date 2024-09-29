@@ -8,21 +8,27 @@ import path from 'path';
 const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, EMAIL_USER, EMAIL_PASS } = process.env;
 
 export async function POST(req) {
-    const { fullName, email, datePicker, timeSlot, dob, phoneNumber, isNewUser } = await req.json(); // Include new field
+    const { fullName, email, datePicker, timeSlot, dob, phoneNumber, isNewUser, selectedServices } = await req.json();
 
-    if (!fullName || !email || !datePicker || !timeSlot || !dob || !phoneNumber || typeof isNewUser === 'undefined') {
-        return new Response(JSON.stringify({ error: 'All fields are required' }), {
+    if (!fullName || !email || !datePicker || !timeSlot || !dob || !phoneNumber || typeof isNewUser === 'undefined' || selectedServices.length === 0) {
+        return new Response(JSON.stringify({ error: 'All fields are required, including services' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 
     // Parse the selected date and time (already in UTC from frontend)
-    const startDateTime = new Date(datePicker); // Date in local time
-    const { startUTC, endUTC } = convertToUTC(datePicker, timeSlot); // Convert the selected time slot to UTC
+    const startDateTime = new Date(datePicker);
+    const { startUTC, endUTC } = convertToUTC(datePicker, timeSlot);
 
     // Format DOB to 'YYYY-MM-DD' format
-    const formattedDob = new Date(dob).toISOString().slice(0, 10); // Only keep the date part, not the time part
+    const formattedDob = new Date(dob).toISOString().slice(0, 10);
+
+    // Convert selected services into a comma-separated string
+    const serviceNames = selectedServices.join(', ');
+
+    // Get current timestamp for create_at field
+    const createAt = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format as 'YYYY-MM-DD HH:MM:SS'
 
     try {
         // Save booking to the database
@@ -34,8 +40,8 @@ export async function POST(req) {
         });
 
         await connection.execute(
-            'INSERT INTO bookings (full_name, dob, phone_number, email, appointment_date, time_slot, isNew_user) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [fullName, formattedDob, phoneNumber, email, startDateTime.toISOString().slice(0, 10), timeSlot, isNewUser] // Save the human-readable time slot in the DB
+            'INSERT INTO kr_dev.appointments (full_name, dob, phone_number, email, appointment_date, time_slot, service_name, isNew_user, create_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [fullName, formattedDob, phoneNumber, email, startDateTime.toISOString().slice(0, 10), timeSlot, serviceNames, isNewUser, createAt]
         );
 
         // Load the service account key from the config folder
@@ -56,11 +62,11 @@ export async function POST(req) {
             summary: 'Appointment Booking',
             description: `Booking for ${fullName}`,
             start: {
-                dateTime: startUTC.toISOString(), // Use UTC start time for Google Calendar
+                dateTime: startUTC.toISOString(),
                 timeZone: 'UTC',
             },
             end: {
-                dateTime: endUTC.toISOString(), // Use UTC end time for Google Calendar
+                dateTime: endUTC.toISOString(),
                 timeZone: 'UTC',
             },
         };
@@ -83,16 +89,20 @@ export async function POST(req) {
             },
         });
 
+        const serviceList = selectedServices.map(service => `<li>${service}</li>`).join(''); // Create an HTML list of selected services
+
         const mailOptions = {
             from: EMAIL_USER,
             to: email,
             subject: 'Booking Confirmation',
             html: `
-                <p>Dear ${fullName},</p>
-                <p>Your booking for ${timeSlot} on ${startDateTime.toDateString()} has been confirmed and added to your calendar!</p>
-                <p>Thank you for choosing our service!</p>
-                <p><a href="${insertedEvent.data.htmlLink}">Click here</a> to view the event on your calendar.</p>
-            `,
+        <p>Dear ${fullName},</p>
+        <p>Your booking for ${timeSlot} on ${startDateTime.toDateString()} has been confirmed and added to your calendar!</p>
+        <p>Here are the services you selected:</p>
+        <ul>${serviceList}</ul>
+        <p>Thank you for choosing our service!</p>
+        <p><a href="${insertedEvent.data.htmlLink}">Click here</a> to view the event on your calendar.</p>
+    `,
         };
 
         const info = await transporter.sendMail(mailOptions);
@@ -113,7 +123,6 @@ export async function POST(req) {
 }
 
 // Helper function to convert the selected time slot to UTC
-
 function convertToUTC(date, timeSlot) {
     const [startTimeStr, endTimeStr] = timeSlot.split(' - ');
     const { hours: startHours, minutes: startMinutes, period: startPeriod } = parseTime(startTimeStr);
@@ -127,7 +136,6 @@ function convertToUTC(date, timeSlot) {
     endDateTime.setHours(convertTo24HourFormat(endHours, endMinutes, endPeriod));
     endDateTime.setMinutes(endMinutes);
 
-    // Convert to UTC
     const startUTC = new Date(startDateTime.getTime() - startDateTime.getTimezoneOffset() * 60000);
     const endUTC = new Date(endDateTime.getTime() - endDateTime.getTimezoneOffset() * 60000);
 
