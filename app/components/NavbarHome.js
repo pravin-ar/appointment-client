@@ -24,7 +24,7 @@ const NavbarHome = () => {
                         height={24} // Adjust size as necessary
                     />
                 </Link>
-                <Link href="/user/login" className={styles.navLink}>About us</Link>
+                <Link href="/user/aboutus" className={styles.navLink}>About us</Link>
                 <Link href="/user/offers" className={styles.navLink}>Offer</Link>
                 <Link href="/user/services" className={styles.navLink}>Service</Link>
                 <Link href="/user/products" className={styles.navLink}>Products</Link>
