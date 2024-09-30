@@ -75,7 +75,7 @@ const Footer = () => {
                     <ul>
                         {policies.map(policy => (
                             <li key={policy.id}>
-                                <Link href={`/policies/${policy.id}`}>
+                                <Link href={`/user/policies/${policy.id}`}>
                                     {policy.name}
                                 </Link>
                             </li>

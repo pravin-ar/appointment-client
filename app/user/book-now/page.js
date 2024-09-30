@@ -9,8 +9,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css'; // Import the default styles
-import Footer from '../components/Footer'; // Import the Footer component
-import NavbarBookNow from '../components/NavbarBookNow'; // Import the Navbar component
+import Footer from '../../components/Footer'; // Import the Footer component
+import NavbarBookNow from '../../components/NavbarBookNow'; // Import the Navbar component
 import styles from './BookNow.module.css'; // Import the custom CSS module
 
 export default function BookNow() {

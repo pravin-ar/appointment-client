@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link'; // Import Link component
 import { useEffect, useState } from 'react';
-import '../admin/content/service-card-text/CustomQuillStyles.css'; // Import custom Quill styles
+import '../../admin/content/service-card-text/CustomQuillStyles.css'; // Import custom Quill styles
 import styles from './ServicesPage.module.css';
 import ServicesSection from './ServicesSection';
 

@@ -1,6 +1,6 @@
 // app/services/ServicesSection.js
 import { useRef } from 'react';
-import styles from '../components/ServicesSection.module.css';
+import styles from '../../components/ServicesSection.module.css';
 
 const ServicesSection = ({ services, onReadMore }) => {
     const containerRef = useRef(null);
