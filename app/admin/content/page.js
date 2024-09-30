@@ -34,6 +34,9 @@ export default function ContentPage() {
                         <Link href="/admin/content/create-admin">
                             <button className="admin-btn">Create Admin</button>
                         </Link>
+                        <Link href="/admin/content/aboutus">
+                            <button className="admin-btn">About Us</button>
+                        </Link>
                     </div>
                 </section>
             </div>

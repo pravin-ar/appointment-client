@@ -6,28 +6,36 @@ const ServicesSection = () => {
     const containerRef = useRef(null);
 
     useEffect(() => {
-        // Fetch services from the API
-        const fetchServices = async () => {
-            try {
-                const response = await fetch('/api/service-card-text');
-                const data = await response.json();
-                
-                // If the data structure doesn't match, modify it accordingly.
-                // Adjust the field names based on the actual response.
-                const formattedServices = data.map((service) => ({
-                    id: service.id,
-                    name: service.name, // Adjust the field names to match your data
-                    description: service.description, // Adjust the field names to match your data
-                    image_url: service.image_url,
-                }));
-                setServices(formattedServices);
-            } catch (error) {
-                console.error('Error fetching services:', error);
-            }
-        };
+        const storedServices = sessionStorage.getItem('servicesData');
 
-        fetchServices();
+        if (storedServices) {
+            setServices(JSON.parse(storedServices));
+        } else {
+            fetchServices();
+        }
     }, []);
+
+    const fetchServices = async () => {
+        try {
+            const response = await fetch('/api/service-card-text');
+            const data = await response.json();
+
+            // Adjust the field names based on your actual data
+            const formattedServices = data.map((service) => ({
+                id: service.id,
+                name: service.name,
+                description: service.description,
+                image_url: service.image_url,
+                info: service.info, // Include the 'info' field
+            }));
+            setServices(formattedServices);
+
+            // Store the services data in sessionStorage
+            sessionStorage.setItem('servicesData', JSON.stringify(formattedServices));
+        } catch (error) {
+            console.error('Error fetching services:', error);
+        }
+    };
 
     // Scroll handler for mouse drag functionality
     const handleMouseDrag = (e) => {
@@ -93,12 +101,12 @@ const ServicesSection = () => {
                                 <div className={styles.imageWrapper}>
                                     <img
                                         src={service.image_url}
-                                        alt={service.name} // Use the correct field name for the alt attribute
+                                        alt={service.name}
                                         className={styles.serviceImage}
                                     />
                                 </div>
                                 <div className={styles.cardContent}>
-                                    <h3 className={styles.serviceTitle}>{service.name}</h3> {/* Use correct field name */}
+                                    <h3 className={styles.serviceTitle}>{service.name}</h3>
                                     <p className={styles.serviceDescription}>{service.description}</p>
                                     <button className={styles.readMoreBtn}>Read More</button>
                                 </div>

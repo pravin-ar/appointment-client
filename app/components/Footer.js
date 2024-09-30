@@ -10,8 +10,7 @@ const Footer = () => {
     const [policies, setPolicies] = useState([]);
 
     useEffect(() => {
-        const storedPolicies = localStorage.getItem('policies');
-
+        const storedPolicies = sessionStorage.getItem('policies');
         if (storedPolicies) {
             setPolicies(JSON.parse(storedPolicies));
         } else {
@@ -19,9 +18,8 @@ const Footer = () => {
                 const res = await fetch('/api/policies');
                 const data = await res.json();
                 setPolicies(data);
-                localStorage.setItem('policies', JSON.stringify(data)); // Store in localStorage
+                sessionStorage.setItem('policies', JSON.stringify(data)); // Store in sessionStorage
             };
-
             fetchPolicies();
         }
     }, []);

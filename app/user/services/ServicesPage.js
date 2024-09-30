@@ -11,22 +11,44 @@ const ServicesPage = () => {
     const [selectedService, setSelectedService] = useState(null);
 
     useEffect(() => {
-        // Fetch all services data once
-        const fetchServices = async () => {
-            try {
-                const response = await fetch('/api/service-card-text');
-                const data = await response.json();
-                setServices(data);
-                if (data.length > 0) {
-                    setSelectedService(data[0]); // Set the first service as default
-                }
-            } catch (error) {
-                console.error('Error fetching services:', error);
-            }
-        };
+        const storedServices = sessionStorage.getItem('servicesData');
 
-        fetchServices();
+        if (storedServices) {
+            const parsedServices = JSON.parse(storedServices);
+            setServices(parsedServices);
+            if (parsedServices.length > 0) {
+                setSelectedService(parsedServices[0]);
+            }
+        } else {
+            fetchServices();
+        }
     }, []);
+
+    const fetchServices = async () => {
+        try {
+            const response = await fetch('/api/service-card-text');
+            const data = await response.json();
+
+            // Ensure 'info' field is included
+            const formattedServices = data.map((service) => ({
+                id: service.id,
+                name: service.name,
+                description: service.description,
+                image_url: service.image_url,
+                info: service.info, // Include the 'info' field
+            }));
+
+            setServices(formattedServices);
+            if (formattedServices.length > 0) {
+                setSelectedService(formattedServices[0]); // Set the first service as default
+            }
+
+            // Store services data in sessionStorage
+            sessionStorage.setItem('servicesData', JSON.stringify(formattedServices));
+        } catch (error) {
+            console.error('Error fetching services:', error);
+        }
+    };
 
     // Handle "Read More" button click
     const handleReadMore = (service) => {
@@ -55,14 +77,16 @@ const ServicesPage = () => {
                                 />
                             </div>
                         </div>
-                        <div className={styles.additionalInfo}>
-                            <div
-                                className={`${styles.detailInfo} rendered-content`}
-                                dangerouslySetInnerHTML={{ __html: selectedService.info }}
-                            />
-                        </div>
+                        {selectedService.info && (
+                            <div className={styles.additionalInfo}>
+                                <div
+                                    className={`${styles.detailInfo} rendered-content`}
+                                    dangerouslySetInnerHTML={{ __html: selectedService.info }}
+                                />
+                            </div>
+                        )}
                         <div className={styles.buttonContainer}>
-                        <Link href="/contact-us">
+                            <Link href="/contact-us">
                                 <button className={styles.bookButton}>Inquiry</button>
                             </Link>
                         </div>

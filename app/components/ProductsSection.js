@@ -5,17 +5,27 @@ export default function ProductsSection() {
     const [productTypes, setProductTypes] = useState([]);
 
     useEffect(() => {
-        const fetchProductTypes = async () => {
-            try {
-                const response = await fetch('/api/product-type');
-                const data = await response.json();
-                setProductTypes(data);
-            } catch (error) {
-                console.error('Error fetching product types:', error);
-            }
-        };
-        fetchProductTypes();
+        const storedProductTypes = sessionStorage.getItem('productTypes');
+
+        if (storedProductTypes) {
+            setProductTypes(JSON.parse(storedProductTypes));
+        } else {
+            fetchProductTypes();
+        }
     }, []);
+
+    const fetchProductTypes = async () => {
+        try {
+            const response = await fetch('/api/product-type');
+            const data = await response.json();
+            setProductTypes(data);
+
+            // Store the fetched product types in sessionStorage
+            sessionStorage.setItem('productTypes', JSON.stringify(data));
+        } catch (error) {
+            console.error('Error fetching product types:', error);
+        }
+    };
 
     // Only display up to 6 product types
     const displayedProductTypes = productTypes.slice(0, 6);
@@ -50,8 +60,16 @@ export default function ProductsSection() {
                 )}
             </div>
             {/* Background Images */}
-            <img src="/assets/images/blue1.png" alt="Background 1" className={styles.backgroundImage1} />
-            <img src="/assets/images/blue2.png" alt="Background 2" className={styles.backgroundImage2} />
+            <img
+                src="/assets/images/blue1.png"
+                alt="Background 1"
+                className={styles.backgroundImage1}
+            />
+            <img
+                src="/assets/images/blue2.png"
+                alt="Background 2"
+                className={styles.backgroundImage2}
+            />
         </section>
     );
 }
