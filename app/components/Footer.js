@@ -3,20 +3,27 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react'; // Import useState and useEffect
+import { useEffect, useState } from 'react';
 import styles from './Footer.module.css';
 
 const Footer = () => {
     const [policies, setPolicies] = useState([]);
 
     useEffect(() => {
-        const fetchPolicies = async () => {
-            const res = await fetch('/api/policies');
-            const data = await res.json();
-            setPolicies(data);
-        };
+        const storedPolicies = localStorage.getItem('policies');
 
-        fetchPolicies();
+        if (storedPolicies) {
+            setPolicies(JSON.parse(storedPolicies));
+        } else {
+            const fetchPolicies = async () => {
+                const res = await fetch('/api/policies');
+                const data = await res.json();
+                setPolicies(data);
+                localStorage.setItem('policies', JSON.stringify(data)); // Store in localStorage
+            };
+
+            fetchPolicies();
+        }
     }, []);
 
     return (

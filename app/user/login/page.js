@@ -1,6 +1,6 @@
 "use client"; // Ensures this is a Client Component
-
 import Head from 'next/head';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function Login() {
@@ -8,6 +8,7 @@ export default function Login() {
         email: '',
         password: ''
     });
+    const router = useRouter();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,7 +29,8 @@ export default function Login() {
 
         const data = await res.json();
         if (data.success) {
-            window.location.href = '/admin'; // Redirect to admin page
+            // After a successful login, redirect to the admin page
+            router.push('/admin');
         } else {
             alert("You are not admin.");
         }

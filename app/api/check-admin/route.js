@@ -1,14 +1,17 @@
 import bcrypt from 'bcryptjs';
+import { serialize } from 'cookie'; // Import the cookie serializer
 import mysql from 'mysql2/promise';
 
-// Load environment variables
-const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME} = process.env;
+const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
 
 export async function POST(req) {
     const { email, password } = await req.json();
 
+    if (!email || !password) {
+        return new Response(JSON.stringify({ success: false, message: 'Email and password are required.' }), { status: 400 });
+    }
+
     try {
-        // Connect to the database using environment variables
         const connection = await mysql.createConnection({
             host: DB_HOST,
             user: DB_USER,
@@ -16,31 +19,43 @@ export async function POST(req) {
             database: DB_NAME,
         });
 
-        // Query the database to check for the email
         const [rows] = await connection.execute(
-            'SELECT * FROM admin_table WHERE email = ?',
+            'SELECT * FROM kr_dev.users WHERE email = ?',
             [email]
         );
 
-        // Close the database connection
         await connection.end();
 
-        // Check if user exists
         if (rows.length === 0) {
-            return new Response(JSON.stringify({ success: false }), { status: 401 });
+            return new Response(JSON.stringify({ success: false, message: 'User not found.' }), { status: 404 });
         }
 
         const user = rows[0];
+        const storedHashedPassword = user.password;
 
-        // Compare the entered plain password with the stored hash
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, storedHashedPassword);
+
         if (isMatch) {
-            return new Response(JSON.stringify({ success: true }), { status: 200 });
+            // Set a cookie to maintain session state
+            const cookie = serialize('adminSession', 'true', {
+                httpOnly: false, // Make it accessible on the client side for debugging purposes
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                path: '/',
+                maxAge: 60 * 60 * 24, // 1 day session duration
+            });
+
+            return new Response(JSON.stringify({ success: true, message: 'Login successful.' }), {
+                status: 200,
+                headers: {
+                    'Set-Cookie': cookie, // Set the session cookie
+                },
+            });
         } else {
-            return new Response(JSON.stringify({ success: false }), { status: 401 });
+            return new Response(JSON.stringify({ success: false, message: 'Invalid password.' }), { status: 401 });
         }
     } catch (error) {
         console.error('Error connecting to the database:', error);
-        return new Response(JSON.stringify({ success: false }), { status: 500 });
+        return new Response(JSON.stringify({ success: false, message: 'Internal server error.' }), { status: 500 });
     }
 }
