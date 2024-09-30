@@ -1,4 +1,4 @@
-// app/products/page.js
+// app/user/products/page.js
 import Footer from '../../components/Footer'; // Import the Footer component
 import NavbarProducts from '../../components/NavbarProducts'; // Import Navbar component
 import ProductsPage from './ProductsPage'; // Import the ProductsPage component

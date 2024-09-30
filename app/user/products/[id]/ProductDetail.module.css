@@ -1,0 +1,171 @@
+/* Container for the entire product detail section */
+.productDetailPage {
+    display: flex;
+    justify-content: space-between;
+    padding: 40px;
+    background-color: #eaf3fc; /* Light blue background */
+}
+
+/* Left Section: Product image */
+.modalLeft {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #ff408c; /* Pink border */
+    position: relative;
+}
+
+/* Discount/Sale tag in the top left corner */
+.saleTag {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background-color: #ff408c;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Large Image styling */
+.largeImage {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+/* Thumbnail images container */
+.thumbnailContainer {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Thumbnail images */
+.thumbnailImage {
+    width: 50px;
+    height: auto;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.2s;
+}
+
+.thumbnailImage:hover {
+    border: 2px solid #ff408c; /* Pink hover border */
+}
+
+/* Right Section: Product details */
+.modalRight {
+    flex: 2;
+    padding-left: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+}
+
+/* Product name */
+.modalRight h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Product description */
+.modalRight p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+/* Product price */
+.productPrice {
+    font-size: 24px;
+    color: #ff408c; /* Pink color */
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Size Guide */
+.sizeGuide {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.sizeGuide label {
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+}
+
+.sizeGuide .sizes {
+    display: flex;
+    gap: 5px;
+}
+
+.sizeGuide .sizes span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.sizeGuide .sizes span.active {
+    background-color: #ff408c;
+    color: #fff;
+    border-color: #ff408c;
+}
+
+/* Find in store button */
+.findInStoreBtn {
+    background-color: #ff408c; /* Pink background */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    display: inline-block;
+}
+
+.findInStoreBtn:hover {
+    background-color: #e60074;
+}
+
+/* Item code and return policy */
+.itemInfo {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.itemInfo span {
+    display: block;
+    margin-bottom: 5px;
+}

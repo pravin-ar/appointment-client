@@ -24,12 +24,12 @@ const NavbarAboutUs = () => {
                         height={24} // Adjust size as necessary
                         className={styles.glassIconAboutUs} // New className for styling
                     />
-                    <Link href="/login" className={styles.navLink}>About us</Link>
+                    <Link href="/user/login" className={styles.navLink}>About us</Link>
                 </div>
-                <Link href="/offers" className={styles.navLink}>Offers</Link>
-                <Link href="/service" className={styles.navLink}>Service</Link>
-                <Link href="/products" className={styles.navLink}>Products</Link>
-                <Link href="/book-now" className={styles.navLink}>Book appointment</Link>
+                <Link href="/user/offers" className={styles.navLink}>Offers</Link>
+                <Link href="/user/service" className={styles.navLink}>Service</Link>
+                <Link href="/user/products" className={styles.navLink}>Products</Link>
+                <Link href="/user/book-now" className={styles.navLink}>Book appointment</Link>
             </nav>
         </header>
     );

@@ -39,11 +39,11 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// Updated GET method to fetch products with image sequence
+// Updated GET method to fetch products with image sequence and tags
 export async function GET() {
     const connection = await createConnection();
     try {
-        console.log('Fetching all product data with images...');
+        console.log('Fetching all product data with images and tags...');
         const [results] = await connection.execute(`
             SELECT 
                 p.id, 
@@ -52,6 +52,7 @@ export async function GET() {
                 p.price,
                 p.type,
                 p.status,
+                p.tags,
                 p.create_at, 
                 p.update_at, 
                 (
@@ -69,7 +70,7 @@ export async function GET() {
                 p.id;
         `);
 
-        // Log each product with its image URLs properly formatted
+        // Log each product with its image URLs and tags properly formatted
         results.forEach(product => {
             console.log('Product:', product); // Log each product to verify the structure
         });
@@ -89,9 +90,7 @@ export async function GET() {
     }
 }
 
-
-
-// Updated POST method to add sequence column for images
+// POST method to add a product with tags
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -101,9 +100,9 @@ export async function POST(req) {
         const price = formData.get("price");
         const type = formData.get("type");
         const status = formData.get("status");
+        const tags = formData.get("tags"); // Get tags as a plain comma-separated string
 
         if (!name || !description || !price || !type || !status) {
-            console.warn('Missing required fields:', { name, description, price, type, status });
             return new Response(JSON.stringify({ error: 'Name, Description, Price, Type, and Status are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
@@ -112,14 +111,13 @@ export async function POST(req) {
 
         const createAt = new Date().toISOString().split('T')[0];
         const [productResult] = await connection.execute(
-            'INSERT INTO kr_dev.products (name, description, price, type, status, create_at) VALUES (?, ?, ?, ?, ?, ?)',
-            [name, description, price, type, status, createAt]
+            'INSERT INTO kr_dev.products (name, description, price, type, status, tags, create_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [name, description, price, type, status, tags, createAt] // Store tags as plain string
         );
 
         const productId = productResult.insertId;
         const imageFiles = [];
 
-        // Collect all file entries from formData
         for (const [key, value] of formData.entries()) {
             if (key.startsWith('file')) {
                 imageFiles.push(value);
@@ -127,8 +125,6 @@ export async function POST(req) {
         }
 
         const imageUrls = [];
-
-        // Upload each image and store its URL in the images table with sequence
         for (const [index, file] of imageFiles.entries()) {
             const fileBuffer = Buffer.from(await file.arrayBuffer());
             const imageName = `products/${productId}-${index}-${Date.now()}.jpg`;
@@ -136,10 +132,9 @@ export async function POST(req) {
             const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
             imageUrls.push(imageUrl);
 
-            // Insert image URL into the database with sequence number
             await connection.execute(
                 'INSERT INTO kr_dev.images (category, category_id, path, sequence, create_at) VALUES (?, ?, ?, ?, ?)',
-                ["product", productId, imageUrl, index + 1, createAt] // 'index + 1' is used for sequence
+                ["product", productId, imageUrl, index + 1, createAt]
             );
         }
 
@@ -159,8 +154,7 @@ export async function POST(req) {
     }
 }
 
-
-// PUT method to update an existing product and its image URLs without deleting old images
+// PUT method to update product with tags
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -171,9 +165,9 @@ export async function PUT(req) {
         const price = formData.get("price");
         const type = formData.get("type");
         const status = formData.get("status");
+        const tags = formData.get("tags"); // Get tags as plain string
 
         if (!id || !name || !description || !price || !type || !status) {
-            console.warn('Missing required fields:', { id, name, description, price, type, status });
             return new Response(JSON.stringify({ error: 'ID, Name, Description, Price, Type, and Status are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
@@ -184,12 +178,11 @@ export async function PUT(req) {
 
         // Update product details
         const [productUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, status = ?, update_at = ? WHERE id = ?',
-            [name, description, price, type, status, updateAt, id]
+            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, status = ?, tags = ?, update_at = ? WHERE id = ?',
+            [name, description, price, type, status, tags, updateAt, id] // Update tags as plain string
         );
 
         if (productUpdateResult.affectedRows === 0) {
-            console.warn(`No product found with ID: ${id}`);
             return new Response(JSON.stringify({ error: 'No product found with provided ID' }), {
                 status: 404,
                 headers: { 'Content-Type': 'application/json' },
@@ -199,7 +192,6 @@ export async function PUT(req) {
         const imageFiles = [];
         const existingImageIds = [];
 
-        // Collect file entries and existing image IDs from formData
         for (const [key, value] of formData.entries()) {
             if (key.startsWith('file')) {
                 imageFiles.push(value);
@@ -209,7 +201,6 @@ export async function PUT(req) {
             }
         }
 
-        // If new files are uploaded, update the existing images in the database
         if (imageFiles.length > 0) {
             const imageUrls = [];
             for (const [index, file] of imageFiles.entries()) {
@@ -220,14 +211,12 @@ export async function PUT(req) {
                     const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
                     imageUrls.push(imageUrl);
 
-                    // Update the existing image URL in the database without changing the sequence
                     await connection.execute(
                         'UPDATE kr_dev.images SET path = ?, update_at = ? WHERE id = ?',
                         [imageUrl, updateAt, existingImageIds[index]]
                     );
                 }
             }
-            console.log('Updated images for product ID:', id);
         }
 
         await connection.end();
@@ -245,7 +234,6 @@ export async function PUT(req) {
         });
     }
 }
-
 
 export const config = {
     api: {

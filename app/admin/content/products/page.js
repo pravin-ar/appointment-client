@@ -7,6 +7,8 @@ export default function ProductCardText() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [productTypes, setProductTypes] = useState([]);
     const [imageFiles, setImageFiles] = useState([{ file: null, id: null, path: '' }]);
+    const [tags, setTags] = useState([]);  // State for handling tags
+    const [inputTag, setInputTag] = useState('');  // State for handling input for new tag
     const [showDialog, setShowDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',
@@ -25,7 +27,6 @@ export default function ProductCardText() {
         try {
             const response = await fetch('/api/products');
             const data = await response.json();
-            console.log('Fetched Products:', data); // Log products to verify image URLs
             setProducts(data);
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -52,14 +53,16 @@ export default function ProductCardText() {
             status: product.status === 'Y'
         });
 
-        // Set existing images with their IDs and paths for preview
         setImageFiles(
             product.image_urls.map((img, index) => ({
                 file: null,
-                id: img.id, // Image ID for updating existing images
-                path: img.path, // Existing image path for preview
+                id: img.id,
+                path: img.path,
             }))
         );
+
+        // Pre-fill tags if the product has any
+        setTags(product.tags ? product.tags.split(',') : []); // Split by comma to get an array of tags
         setShowDialog(true);
     };
 
@@ -73,6 +76,7 @@ export default function ProductCardText() {
             status: false
         });
         setImageFiles([{ file: null, id: null, path: '' }]);
+        setTags([]);  // Reset tags for new product
         setShowDialog(true);
     };
 
@@ -97,6 +101,21 @@ export default function ProductCardText() {
         }));
     };
 
+    const handleTagInput = (e) => {
+        setInputTag(e.target.value);
+    };
+
+    const addTag = () => {
+        if (inputTag.trim() !== '') {
+            setTags((prevTags) => [...prevTags, inputTag.trim()]);
+            setInputTag('');  // Clear input
+        }
+    };
+
+    const removeTag = (tagToRemove) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
     const handleSave = async () => {
         try {
             const formData = new FormData();
@@ -108,23 +127,27 @@ export default function ProductCardText() {
             formData.append('price', newProduct.price);
             formData.append('type', newProduct.type);
             formData.append('status', newProduct.status ? 'Y' : 'N');
-
+    
+            // Ensure the tags are formatted correctly as a plain string
+            const formattedTags = tags.filter(tag => tag.trim() !== "").join(','); // Join tags by commas
+            formData.append('tags', formattedTags); // Append the clean tags string
+    
             imageFiles.forEach((imageObj, index) => {
                 if (imageObj.file) {
                     formData.append(`file${index}`, imageObj.file);
-                    formData.append(`image_id${index}`, imageObj.id); // Include image ID for update
+                    formData.append(`image_id${index}`, imageObj.id);
                 }
             });
-
+    
             const response = await fetch('/api/products', {
                 method: editingProduct ? 'PUT' : 'POST',
                 body: formData,
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Failed to ${editingProduct ? 'update' : 'add'} product`);
             }
-
+    
             setEditingProduct(null);
             setShowDialog(false);
             fetchProducts();
@@ -142,11 +165,6 @@ export default function ProductCardText() {
                         <article key={product.id} className="card">
                             <header className="card-header">
                                 <h2 className="card-title">{product.name}</h2>
-
-                                {/* Log product image URLs to check structure */}
-                                {console.log('Product Image URLs:', product.image_urls)}
-
-                                {/* Display the first image from image_urls array */}
                                 {product.image_urls && product.image_urls.length > 0 && product.image_urls[0].path ? (
                                     <img src={product.image_urls[0].path} alt={product.name} className="card-image" />
                                 ) : (
@@ -221,6 +239,27 @@ export default function ProductCardText() {
                                 /> Active
                             </label>
                         </div>
+
+                        {/* Tags Section */}
+                        <div className={styles.dialogInput}>
+                            <h4>Tags</h4>
+                            <input
+                                type="text"
+                                value={inputTag}
+                                placeholder="Enter a tag and press add"
+                                onChange={handleTagInput}
+                            />
+                            <button type="button" className="btn" onClick={addTag}>Add Tag</button>
+                            <div>
+                                {tags.map((tag, index) => (
+                                    <span key={index} className={styles.tag}>
+                                        {tag} <button type="button" onClick={() => removeTag(tag)}>x</button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Image Upload Section */}
                         {imageFiles.map((imageObj, index) => (
                             <div key={index} className={styles.dialogInput}>
                                 {imageObj.path && (

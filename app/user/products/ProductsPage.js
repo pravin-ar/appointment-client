@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 import { useEffect, useState } from 'react';
 import styles from './ProductsPage.module.css'; // Import CSS module
 
@@ -7,9 +8,8 @@ const ProductsPage = () => {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedType, setSelectedType] = useState("Bestsellers");
     const [productTypes, setProductTypes] = useState([]);
-    const [selectedProduct, setSelectedProduct] = useState(null); // State for the selected product
-    const [currentLargeImage, setCurrentLargeImage] = useState(null); // State for the large image
-
+    const router = useRouter();
+    
     // Fetch products and product types on component mount
     useEffect(() => {
         const fetchProducts = async () => {
@@ -48,21 +48,9 @@ const ProductsPage = () => {
         }
     };
 
-    // Open Modal for Product
-    const openProductModal = (product) => {
-        setSelectedProduct(product);
-        setCurrentLargeImage(product.image_urls[0].path); // Set the initial large image to the first image
-    };
-
-    // Close Modal
-    const closeModal = () => {
-        setSelectedProduct(null); // Reset selected product
-        setCurrentLargeImage(null); // Reset large image
-    };
-
-    // Handle Thumbnail Click (to change large image)
-    const handleThumbnailClick = (imagePath) => {
-        setCurrentLargeImage(imagePath); // Update the large image when a thumbnail is clicked
+    // Navigate to the product detail page
+    const navigateToProductDetail = (id) => {
+        router.push(`/user/products/${id}`); // Use the router to navigate
     };
 
     return (
@@ -141,7 +129,7 @@ const ProductsPage = () => {
                     <div className={styles.productGrid}>
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((product) => (
-                                <div key={product.id} className={styles.productCard} onClick={() => openProductModal(product)}>
+                                <div key={product.id} className={styles.productCard} onClick={() => navigateToProductDetail(product.id)}>
                                     <h3 className={styles.productName}>{product.name}</h3>
                                     {product.image_urls && product.image_urls.length > 0 && product.image_urls[0].path ? (
                                         <img src={product.image_urls[0].path} alt={product.name} className={styles.productImage} />
@@ -157,41 +145,6 @@ const ProductsPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Modal for Product Details */}
-            {selectedProduct && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalLeft}>
-                            {/* Large Image */}
-                            <img
-                                src={currentLargeImage}
-                                alt={selectedProduct.name}
-                                className={styles.largeImage}
-                            />
-                            {/* Thumbnails */}
-                            <div className={styles.thumbnailContainer}>
-                                {selectedProduct.image_urls.map((img, index) => (
-                                    <img
-                                        key={index}
-                                        src={img.path}
-                                        alt={`Thumbnail ${index}`}
-                                        className={styles.thumbnailImage}
-                                        onClick={() => handleThumbnailClick(img.path)} // On click, change the large image
-                                    />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Right Side Product Info */}
-                        <div className={styles.modalRight}>
-                            <h2>{selectedProduct.name}</h2>
-                            <p className={styles.modalPrice}>£{selectedProduct.price}</p>
-                            <button onClick={closeModal} className={styles.closeButton}>Close</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     );
 };

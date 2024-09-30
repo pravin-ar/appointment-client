@@ -16,8 +16,8 @@ const NavbarBookNow = () => {
                 />
             </div>
             <nav className={styles.navbarCenter}>
-                <Link href="/login" className={styles.navLink}>About us</Link>
-                <Link href="/offers" className={styles.navLink}>Offers</Link>
+                <Link href="/user/aboutus" className={styles.navLink}>About us</Link>
+                <Link href="/user/offers" className={styles.navLink}>Offers</Link>
                 <div className={styles.navLinkWithIcon}>
                     <Image
                         src="/assets/images/glass.png" // Replace with your glasses icon path
@@ -26,11 +26,11 @@ const NavbarBookNow = () => {
                         height={24} // Adjust size as necessary
                         className={styles.glassIconBookNow} // New className for styling
                     />
-                    <Link href="/services" className={styles.navLink}>Service</Link>
+                    <Link href="/user/services" className={styles.navLink}>Service</Link>
                 </div>
                 
-                <Link href="/products" className={styles.navLink}>Products</Link>
-                <Link href="/book-now" className={styles.navLink}>Book appointment</Link>
+                <Link href="/user/products" className={styles.navLink}>Products</Link>
+                <Link href="/user/book-now" className={styles.navLink}>Book appointment</Link>
             </nav>
         </header>
     );
