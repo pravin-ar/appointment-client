@@ -14,20 +14,24 @@ async function createConnection() {
 }
 
 export async function GET(req, { params }) {
-    const { id } = params;
+    const { id } = params; // Get the product id from the URL params
     const connection = await createConnection();
     try {
+        // Update the query to filter by product id
         const [results] = await connection.execute(
             `
             SELECT 
                 p.id, 
                 p.name, 
                 p.description, 
-                p.price, 
-                p.type, 
-                p.status, 
+                p.price,
+                p.type,
+                p.frame,
+                p.size,
+                p.status,
+                p.tags,
                 p.create_at, 
-                p.update_at,
+                p.update_at, 
                 (
                     SELECT JSON_ARRAYAGG(
                         JSON_OBJECT('path', i.path, 'sequence', i.sequence)
@@ -36,9 +40,15 @@ export async function GET(req, { params }) {
                     WHERE i.category_id = p.id 
                     AND i.category = 'product'
                     ORDER BY i.sequence ASC
-                ) AS image_urls
-            FROM kr_dev.products p 
-            WHERE p.id = ?;
+                ) AS image_urls,
+                (
+                    SELECT meta_tag FROM kr_dev.meta_data m
+                    WHERE m.category_id = p.id
+                    AND m.category = 'product_meta_data'
+                ) AS meta_tag
+            FROM 
+                kr_dev.products p 
+            WHERE p.id = ?;  -- Ensure the query filters by the product id
             `,
             [id]
         );

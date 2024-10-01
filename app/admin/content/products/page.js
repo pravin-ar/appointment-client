@@ -5,22 +5,30 @@ import styles from './ProductCardText.module.css';
 export default function ProductCardText() {
     const [products, setProducts] = useState([]);
     const [editingProduct, setEditingProduct] = useState(null);
-    const [productTypes, setProductTypes] = useState([]);
+    const [productTypes, setProductTypes] = useState([]); // Product Types (General)
+    const [frames, setFrames] = useState([]); // Frames data
+    const [sizes, setSizes] = useState([]); // Sizes data
+    const [offers, setOffers] = useState([]); // Offers data
     const [imageFiles, setImageFiles] = useState([{ file: null, id: null, path: '' }]);
-    const [tags, setTags] = useState([]);  // State for handling tags
-    const [inputTag, setInputTag] = useState('');  // State for handling input for new tag
+    const [metaTag, setMetaTag] = useState(''); // State for handling meta tag
+    const [selectedOffer, setSelectedOffer] = useState(''); // State for handling selected offer
     const [showDialog, setShowDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',
         description: '',
         price: '',
         type: '',
-        status: false
+        status: false,
+        frame: '',
+        size: ''
     });
 
     useEffect(() => {
         fetchProducts();
         fetchProductTypes();
+        fetchFrames();
+        fetchSizes();
+        fetchOffers(); // Fetch offer tags
     }, []);
 
     const fetchProducts = async () => {
@@ -43,6 +51,39 @@ export default function ProductCardText() {
         }
     };
 
+    // Fetch frames data from the backend
+    const fetchFrames = async () => {
+        try {
+            const response = await fetch('/api/tags?category=product-frames');
+            const data = await response.json();
+            setFrames(data);
+        } catch (error) {
+            console.error('Error fetching frames:', error);
+        }
+    };
+
+    // Fetch sizes data from the backend
+    const fetchSizes = async () => {
+        try {
+            const response = await fetch('/api/tags?category=product-size');
+            const data = await response.json();
+            setSizes(data);
+        } catch (error) {
+            console.error('Error fetching sizes:', error);
+        }
+    };
+
+    // Fetch offers data from the backend
+    const fetchOffers = async () => {
+        try {
+            const response = await fetch('/api/tags?category=offer-tags');
+            const data = await response.json();
+            setOffers(data);
+        } catch (error) {
+            console.error('Error fetching offers:', error);
+        }
+    };
+
     const handleEdit = (product) => {
         setEditingProduct(product);
         setNewProduct({
@@ -50,7 +91,9 @@ export default function ProductCardText() {
             description: product.description,
             price: product.price,
             type: product.type,
-            status: product.status === 'Y'
+            status: product.status === 'Y',
+            frame: product.frame || '',
+            size: product.size || ''
         });
 
         setImageFiles(
@@ -61,8 +104,8 @@ export default function ProductCardText() {
             }))
         );
 
-        // Pre-fill tags if the product has any
-        setTags(product.tags ? product.tags.split(',') : []); // Split by comma to get an array of tags
+        setSelectedOffer(product.offer_tag || ''); // Pre-fill selected offer
+        setMetaTag(product.meta_tag || ''); // Pre-fill meta tag
         setShowDialog(true);
     };
 
@@ -73,10 +116,13 @@ export default function ProductCardText() {
             description: '',
             price: '',
             type: '',
-            status: false
+            status: false,
+            frame: '',
+            size: ''
         });
         setImageFiles([{ file: null, id: null, path: '' }]);
-        setTags([]);  // Reset tags for new product
+        setSelectedOffer('');
+        setMetaTag('');
         setShowDialog(true);
     };
 
@@ -101,19 +147,8 @@ export default function ProductCardText() {
         }));
     };
 
-    const handleTagInput = (e) => {
-        setInputTag(e.target.value);
-    };
-
-    const addTag = () => {
-        if (inputTag.trim() !== '') {
-            setTags((prevTags) => [...prevTags, inputTag.trim()]);
-            setInputTag('');  // Clear input
-        }
-    };
-
-    const removeTag = (tagToRemove) => {
-        setTags(tags.filter(tag => tag !== tagToRemove));
+    const handleMetaTagChange = (e) => {
+        setMetaTag(e.target.value);
     };
 
     const handleSave = async () => {
@@ -126,28 +161,28 @@ export default function ProductCardText() {
             formData.append('description', newProduct.description);
             formData.append('price', newProduct.price);
             formData.append('type', newProduct.type);
+            formData.append('frame', newProduct.frame); // Include frame in the form data
+            formData.append('size', newProduct.size); // Include size in the form data
             formData.append('status', newProduct.status ? 'Y' : 'N');
-    
-            // Ensure the tags are formatted correctly as a plain string
-            const formattedTags = tags.filter(tag => tag.trim() !== "").join(','); // Join tags by commas
-            formData.append('tags', formattedTags); // Append the clean tags string
-    
+            formData.append('offer_tag', selectedOffer); // Include offer tag in the form data
+            formData.append('meta_tag', metaTag); // Append the meta tag
+
             imageFiles.forEach((imageObj, index) => {
                 if (imageObj.file) {
                     formData.append(`file${index}`, imageObj.file);
                     formData.append(`image_id${index}`, imageObj.id);
                 }
             });
-    
+
             const response = await fetch('/api/products', {
                 method: editingProduct ? 'PUT' : 'POST',
                 body: formData,
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Failed to ${editingProduct ? 'update' : 'add'} product`);
             }
-    
+
             setEditingProduct(null);
             setShowDialog(false);
             fetchProducts();
@@ -218,6 +253,8 @@ export default function ProductCardText() {
                             placeholder="Enter Price"
                             onChange={handleFieldChange}
                         />
+
+                        {/* Dropdown for Product Type */}
                         <select
                             className={styles.dialogInput}
                             name="type"
@@ -229,6 +266,46 @@ export default function ProductCardText() {
                                 <option key={type.id} value={type.type}>{type.type}</option>
                             ))}
                         </select>
+
+                        {/* Dropdown for Frames */}
+                        <select
+                            className={styles.dialogInput}
+                            name="frame"
+                            value={newProduct.frame}
+                            onChange={handleFieldChange}
+                        >
+                            <option value="">Select Frame</option>
+                            {frames.map((frame) => (
+                                <option key={frame.id} value={frame.info}>{frame.info}</option>
+                            ))}
+                        </select>
+
+                        {/* Dropdown for Sizes */}
+                        <select
+                            className={styles.dialogInput}
+                            name="size"
+                            value={newProduct.size}
+                            onChange={handleFieldChange}
+                        >
+                            <option value="">Select Size</option>
+                            {sizes.map((size) => (
+                                <option key={size.id} value={size.info}>{size.info}</option>
+                            ))}
+                        </select>
+
+                        {/* Dropdown for Offers */}
+                        <select
+                            className={styles.dialogInput}
+                            name="offer"
+                            value={selectedOffer}
+                            onChange={(e) => setSelectedOffer(e.target.value)}
+                        >
+                            <option value="">Select Offer Tag</option>
+                            {offers.map((offer) => (
+                                <option key={offer.id} value={offer.info}>{offer.info}</option>
+                            ))}
+                        </select>
+
                         <div className={styles.dialogInput}>
                             <label>
                                 <input
@@ -240,23 +317,15 @@ export default function ProductCardText() {
                             </label>
                         </div>
 
-                        {/* Tags Section */}
+                        {/* Meta Tag Section */}
                         <div className={styles.dialogInput}>
-                            <h4>Tags</h4>
+                            <h4>Meta Tag</h4>
                             <input
                                 type="text"
-                                value={inputTag}
-                                placeholder="Enter a tag and press add"
-                                onChange={handleTagInput}
+                                value={metaTag}
+                                placeholder="Enter Meta Tag"
+                                onChange={handleMetaTagChange}
                             />
-                            <button type="button" className="btn" onClick={addTag}>Add Tag</button>
-                            <div>
-                                {tags.map((tag, index) => (
-                                    <span key={index} className={styles.tag}>
-                                        {tag} <button type="button" onClick={() => removeTag(tag)}>x</button>
-                                    </span>
-                                ))}
-                            </div>
                         </div>
 
                         {/* Image Upload Section */}
