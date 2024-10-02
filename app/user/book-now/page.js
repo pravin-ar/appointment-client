@@ -35,24 +35,52 @@ export default function BookNow() {
 
     useEffect(() => {
         if (selectedDate) {
-            generateTimeSlots();
+            fetchAvailableSlots();
+        } else {
+            setTimeSlots([]);
+            setFormData({ ...formData, timeSlot: '' });
         }
     }, [selectedDate]);
 
-    const generateTimeSlots = () => {
-        const slots = [];
-        const startHour = 9; // 9 AM
-        const endHour = 17; // 5 PM
-        const slotDuration = 1; // 1-hour duration
+    // Helper function to format date in 'YYYY-MM-DD' in local time
+    function formatDateLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
-        for (let hour = startHour; hour < endHour; hour++) {
-            const startTime = `${hour % 12 || 12}:00 ${hour < 12 ? 'AM' : 'PM'}`;
-            const endTime = `${(hour + slotDuration) % 12 || 12}:00 ${(hour + slotDuration) < 12 ? 'AM' : 'PM'}`;
-            const timeString = `${startTime} - ${endTime}`;
-            slots.push(timeString);
+    const fetchAvailableSlots = async () => {
+        if (!selectedDate) return;
+
+        const dateString = formatDateLocal(selectedDate); // Use local date format
+
+        try {
+            const response = await fetch(`/api/get-available-user-slots?date=${dateString}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                const { availableSlots } = data;
+                if (availableSlots.length === 0) {
+                    alert('No slots are available on this date. Please select another date.');
+                    setTimeSlots([]);
+                    setFormData({ ...formData, timeSlot: '' });
+                } else {
+                    setTimeSlots(availableSlots);
+                }
+            } else {
+                console.error(data.error);
+                setTimeSlots([]);
+                setFormData({ ...formData, timeSlot: '' });
+            }
+        } catch (error) {
+            console.error('Error fetching available slots:', error);
+            setTimeSlots([]);
+            setFormData({ ...formData, timeSlot: '' });
         }
-
-        setTimeSlots(slots);
     };
 
     const handleChange = (e) => {
@@ -98,7 +126,7 @@ export default function BookNow() {
             const res = await fetch('/api/submit-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...formData, datePicker: selectedDate, dob: dob, selectedServices }),
+                body: JSON.stringify({ ...formData, datePicker: formatDateLocal(selectedDate), dob: formatDateLocal(dob), selectedServices }),
             });
 
             const data = await res.json();
@@ -109,11 +137,14 @@ export default function BookNow() {
                 setIsLoading(false); // Switch to "Thank You" view
             } else {
                 alert(`Error: ${data.error}`);
+                setShowDialog(false);
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Error during submission:', error);
             alert('An error occurred while submitting the booking. Please try again later.');
             setShowDialog(false);
+            setIsLoading(false);
         }
     };
 
@@ -219,7 +250,10 @@ export default function BookNow() {
                             <DatePicker
                                 id="datePicker"
                                 selected={selectedDate}
-                                onChange={(date) => setSelectedDate(date)}
+                                onChange={(date) => {
+                                    setSelectedDate(date);
+                                    setFormData({ ...formData, timeSlot: '' });
+                                }}
                                 dateFormat="dd / MM / yyyy"
                                 placeholderText="DD / MM / YYYY"
                                 minDate={new Date()}
@@ -229,23 +263,28 @@ export default function BookNow() {
                         </div>
                     </div>
 
-                    {selectedDate && (
+                    {selectedDate && timeSlots.length > 0 && (
                         <div className={styles.formGroup}>
                             <label htmlFor="timeSlot" className={styles.formLabel}>Your available slot</label>
                             <div className={styles.timeSlotsContainer}>
-                                {timeSlots.map((slot, index) => (
+                                {timeSlots.map((slot) => (
                                     <button
                                         type="button"
-                                        key={index}
-                                        className={`${styles.timeSlot} ${formData.timeSlot === slot ? styles.active : ''}`}
-                                        onClick={() => setFormData({ ...formData, timeSlot: slot })}
+                                        key={slot.id}
+                                        className={`${styles.timeSlot} ${formData.timeSlot === slot.id ? styles.active : ''}`}
+                                        onClick={() => setFormData({ ...formData, timeSlot: slot.id })}
                                     >
-                                        {slot}
+                                        {slot.time}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
+
+                    {selectedDate && timeSlots.length === 0 && (
+                        <p className={styles.noSlotsMessage}>No slots are available on this date. Please select another date.</p>
+                    )}
+
                     <div className={`${styles.formGroup} ${styles.serviceGroup}`}>
                         <label className={styles.formLabel}>What type of service would you like to receive?</label>
                         <div className={styles.servicesContainer}>
@@ -313,7 +352,9 @@ export default function BookNow() {
                                         <strong>Appointment Date: </strong> {selectedDate?.toLocaleDateString()}
                                     </p>
                                     <p className={styles.dialogText}>
-                                        <strong>Appointment Time: </strong> {formData.timeSlot}
+                                        <strong>Appointment Time: </strong> {
+                                            timeSlots.find(slot => slot.id === formData.timeSlot)?.time || ''
+                                        }
                                     </p>
                                     <button className={styles.dialogButton} onClick={handleCloseDialog}>
                                         Done

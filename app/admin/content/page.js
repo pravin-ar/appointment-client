@@ -40,6 +40,9 @@ export default function ContentPage() {
                         <Link href="/admin/content/tags">
                             <button className="admin-btn">Product Category</button>
                         </Link>
+                        <Link href="/admin/content/availability-slot">
+                            <button className="admin-btn">availability Slot</button>
+                        </Link>
                     </div>
                 </section>
             </div>
