@@ -8,8 +8,16 @@ import styles from './Footer.module.css';
 
 const Footer = () => {
     const [policies, setPolicies] = useState([]);
+    const [footerInfo, setFooterInfo] = useState({
+        description: '',
+        email: '',
+        website: '',
+        address: '',
+        number: '',
+    });
 
     useEffect(() => {
+        // Fetch policies
         const storedPolicies = sessionStorage.getItem('policies');
         if (storedPolicies) {
             setPolicies(JSON.parse(storedPolicies));
@@ -22,7 +30,36 @@ const Footer = () => {
             };
             fetchPolicies();
         }
+
+        // Fetch footer info
+        const storedFooterInfo = sessionStorage.getItem('footerInfo');
+        if (storedFooterInfo) {
+            const data = JSON.parse(storedFooterInfo);
+            setFooterInfo({
+                description: data.description || '',
+                email: data.email || '',
+                website: data.website || '',
+                address: data.address || '',
+                number: data.number || '',
+            });
+        } else {
+            const fetchFooterInfo = async () => {
+                const res = await fetch('/api/footer-info');
+                const data = await res.json();
+                setFooterInfo({
+                    description: data.description || '',
+                    email: data.email || '',
+                    website: data.website || '',
+                    address: data.address || '',
+                    number: data.number || '',
+                });
+                sessionStorage.setItem('footerInfo', JSON.stringify(data));
+            };
+            fetchFooterInfo();
+        }
     }, []);
+
+    const { description, email, website, address, number } = footerInfo;
 
     return (
         <footer className={styles.footer}>
@@ -37,16 +74,34 @@ const Footer = () => {
                             height={57} // Adjust as necessary
                         />
                     </div>
-                    <p>
-                        Keena Rakkado was established in May 2002 after taking over an
-                        established optician - Spectacle Express in West Ealing.
-                    </p>
+                    {description && (
+                        <p dangerouslySetInnerHTML={{ __html: description }} />
+                    )}
                     <p className={styles.contactInfo}>
-                        Mob No: +91-1112223334
-                        <br />
-                        Email id: abcd11@gmail.com
-                        <br />
-                        Website: <a href="http://www.keenarakkado.com">www.keenarakkado.com</a>
+                        {address && (
+                            <>
+                                <strong>Address:</strong> {address}
+                                <br />
+                            </>
+                        )}
+                        {number && (
+                            <>
+                                <strong>Mob No:</strong> {number}
+                                <br />
+                            </>
+                        )}
+                        {email && (
+                            <>
+                                <strong>Email:</strong> {email}
+                                <br />
+                            </>
+                        )}
+                        {website && (
+                            <>
+                                <strong>Website:</strong>{' '}
+                                <a href={website}>{website}</a>
+                            </>
+                        )}
                     </p>
                 </div>
 
