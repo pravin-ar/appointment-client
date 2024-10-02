@@ -5,8 +5,8 @@ import Head from 'next/head';
 import Image from 'next/image'; // Import the Image component from next/image
 import { useEffect, useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
-import Footer from '../components/Footer'; // Import the Footer component
-import NavbarHome from '../components/NavbarHome'; // Import the Navbar component
+import Footer from '../../components/Footer'; // Import the Footer component
+import NavbarHome from '../../components/NavbarHome'; // Import the Navbar component
 import styles from './contact.module.css'; // Import the custom CSS module
 
 export default function BookNow() {

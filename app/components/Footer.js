@@ -54,10 +54,10 @@ const Footer = () => {
                 <div className={styles.footerCenter}>
                     <h3>Navigation</h3>
                     <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="/contact-us">Contact Us</a></li>
-                        <li><a href="#">Our Policy</a></li>
+                        <li><a href="/user/aboutus">About Us</a></li>
+                        <li><a href="/user/faq">FAQ</a></li>
+                        <li><a href="/user/contact-us">Contact Us</a></li>
+                        <li><a href="/user/policy">Our Policy</a></li>
                     </ul>
                 </div>
 

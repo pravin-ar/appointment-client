@@ -43,6 +43,12 @@ export default function ContentPage() {
                         <Link href="/admin/content/availability-slot">
                             <button className="admin-btn">availability Slot</button>
                         </Link>
+                        <Link href="/admin/content/policy">
+                            <button className="admin-btn">Our Policy</button>
+                        </Link>
+                        <Link href="/admin/content/faq">
+                            <button className="admin-btn">FAQ</button>
+                        </Link>
                     </div>
                 </section>
             </div>
