@@ -1,3 +1,4 @@
+// app/admin/products/page.js
 "use client";
 import { useEffect, useState } from 'react';
 import styles from './ProductCardText.module.css';
@@ -10,7 +11,6 @@ export default function ProductCardText() {
     const [sizes, setSizes] = useState([]); // Sizes data
     const [offers, setOffers] = useState([]); // Offers data
     const [imageFiles, setImageFiles] = useState([{ file: null, id: null, path: '' }]);
-    const [metaTag, setMetaTag] = useState(''); // State for handling meta tag
     const [selectedOffer, setSelectedOffer] = useState(''); // State for handling selected offer
     const [showDialog, setShowDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
@@ -22,6 +22,11 @@ export default function ProductCardText() {
         frame: '',
         size: ''
     });
+
+    // New states for meta data
+    const [metaTitle, setMetaTitle] = useState('');
+    const [metaDescription, setMetaDescription] = useState('');
+    const [metaKeyword, setMetaKeyword] = useState('');
 
     useEffect(() => {
         fetchProducts();
@@ -105,7 +110,11 @@ export default function ProductCardText() {
         );
 
         setSelectedOffer(product.offer_tag || ''); // Pre-fill selected offer
-        setMetaTag(product.meta_tag || ''); // Pre-fill meta tag
+
+        // Pre-fill meta data fields
+        setMetaTitle(product.meta_data?.title || '');
+        setMetaDescription(product.meta_data?.description || '');
+        setMetaKeyword(product.meta_data?.keyword || '');
         setShowDialog(true);
     };
 
@@ -122,7 +131,9 @@ export default function ProductCardText() {
         });
         setImageFiles([{ file: null, id: null, path: '' }]);
         setSelectedOffer('');
-        setMetaTag('');
+        setMetaTitle('');
+        setMetaDescription('');
+        setMetaKeyword('');
         setShowDialog(true);
     };
 
@@ -141,14 +152,19 @@ export default function ProductCardText() {
 
     const handleFieldChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setNewProduct((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-    };
 
-    const handleMetaTagChange = (e) => {
-        setMetaTag(e.target.value);
+        if (name === 'metaTitle') {
+            setMetaTitle(value);
+        } else if (name === 'metaDescription') {
+            setMetaDescription(value);
+        } else if (name === 'metaKeyword') {
+            setMetaKeyword(value);
+        } else {
+            setNewProduct((prev) => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
 
     const handleSave = async () => {
@@ -165,7 +181,11 @@ export default function ProductCardText() {
             formData.append('size', newProduct.size); // Include size in the form data
             formData.append('status', newProduct.status ? 'Y' : 'N');
             formData.append('offer_tag', selectedOffer); // Include offer tag in the form data
-            formData.append('meta_tag', metaTag); // Append the meta tag
+
+            // Append meta data fields
+            formData.append('meta_title', metaTitle);
+            formData.append('meta_description', metaDescription);
+            formData.append('meta_keyword', metaKeyword);
 
             imageFiles.forEach((imageObj, index) => {
                 if (imageObj.file) {
@@ -317,14 +337,38 @@ export default function ProductCardText() {
                             </label>
                         </div>
 
-                        {/* Meta Tag Section */}
+                        {/* Meta Title Field */}
                         <div className={styles.dialogInput}>
-                            <h4>Meta Tag</h4>
+                            <h4>Meta Title</h4>
                             <input
                                 type="text"
-                                value={metaTag}
-                                placeholder="Enter Meta Tag"
-                                onChange={handleMetaTagChange}
+                                name="metaTitle"
+                                value={metaTitle}
+                                placeholder="Enter Meta Title"
+                                onChange={handleFieldChange}
+                            />
+                        </div>
+
+                        {/* Meta Description Field */}
+                        <div className={styles.dialogInput}>
+                            <h4>Meta Description</h4>
+                            <textarea
+                                name="metaDescription"
+                                value={metaDescription}
+                                placeholder="Enter Meta Description"
+                                onChange={handleFieldChange}
+                            />
+                        </div>
+
+                        {/* Meta Keyword Field */}
+                        <div className={styles.dialogInput}>
+                            <h4>Meta Keywords</h4>
+                            <input
+                                type="text"
+                                name="metaKeyword"
+                                value={metaKeyword}
+                                placeholder="Enter Meta Keywords (comma-separated)"
+                                onChange={handleFieldChange}
                             />
                         </div>
 

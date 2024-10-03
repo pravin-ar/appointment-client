@@ -1,3 +1,4 @@
+// app/api/products/route.js
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import mysql from 'mysql2/promise';
 
@@ -33,13 +34,13 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch products with image sequence, tags, and meta tags
+// GET method to fetch products with image sequence, tags, and meta data
 export async function GET() {
     const connection = await createConnection();
     try {
-        console.log('Fetching all product data with images, tags, and meta tags...');
-        const [results] = await connection.execute(`
-            SELECT 
+        console.log('Fetching all product data with images, tags, and meta data...');
+        const [results] = await connection.execute(
+            `SELECT 
                 p.id, 
                 p.name, 
                 p.description, 
@@ -48,12 +49,12 @@ export async function GET() {
                 p.frame,
                 p.size,
                 p.status,
-                p.tags,
+                p.offer_tag,
                 p.create_at, 
                 p.update_at, 
                 (
                     SELECT JSON_ARRAYAGG(
-                        JSON_OBJECT('path', i.path, 'sequence', i.sequence)
+                        JSON_OBJECT('id', i.id, 'path', i.path, 'sequence', i.sequence)
                     )
                     FROM kr_dev.images i
                     WHERE i.category_id = p.id 
@@ -61,19 +62,25 @@ export async function GET() {
                     ORDER BY i.sequence ASC
                 ) AS image_urls,
                 (
-                    SELECT meta_tag FROM kr_dev.meta_data m
+                    SELECT JSON_OBJECT('title', m.title, 'description', m.description, 'keyword', m.keyword)
+                    FROM kr_dev.meta_data m
                     WHERE m.category_id = p.id
                     AND m.category = 'product_meta_data'
-                ) AS meta_tag
+                ) AS meta_data
             FROM 
                 kr_dev.products p 
             GROUP BY 
-                p.id;
-        `);
+                p.id;`
+        );
 
-        // Ensure the image_urls are not truncated
+        // No need to parse; data is already JavaScript objects
         results.forEach(product => {
-            console.log('Product:', JSON.stringify(product, null, 2)); // This will properly log the object structure
+            if (!product.image_urls) {
+                product.image_urls = [];
+            }
+            if (!product.meta_data) {
+                product.meta_data = {};
+            }
         });
 
         await connection.end();
@@ -91,7 +98,8 @@ export async function GET() {
     }
 }
 
-// POST method to add a product with meta tag, frame, and size
+
+// POST method to add a product with meta data, frame, and size
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -105,13 +113,18 @@ export async function POST(req) {
         const size = formData.get("size"); // Get size
         const status = formData.get("status");
         const tags = formData.get("tags"); // Get tags as a plain comma-separated string
-        const metaTag = formData.get("meta_tag"); // Get meta tag
+        const offerTag = formData.get("offer_tag"); // Get offer tag
 
-        console.log('Product Details:', { name, description, price, type, frame, size, status, tags, metaTag });
+        // Get meta data fields
+        const title = formData.get("meta_title");
+        const metaDescription = formData.get("meta_description");
+        const keyword = formData.get("meta_keyword");
+
+        console.log('Product Details:', { name, description, price, type, frame, size, status, tags, offerTag, title, metaDescription, keyword });
 
         if (!name || !description || !price || !type || !status) {
             console.error('Missing required fields');
-            return new Response(JSON.stringify({ error: 'Name, Description, Price, Type, Status, Frame, and Size are required' }), {
+            return new Response(JSON.stringify({ error: 'Name, Description, Price, Type, Status are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -119,19 +132,19 @@ export async function POST(req) {
 
         const createAt = new Date().toISOString().split('T')[0];
         const [productResult] = await connection.execute(
-            'INSERT INTO kr_dev.products (name, description, price, type, frame, size, status, tags, create_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [name, description, price, type, frame, size, status, tags, createAt]
+            'INSERT INTO kr_dev.products (name, description, price, type, frame, size, status, tags, offer_tag, create_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [name, description, price, type, frame, size, status, tags, offerTag, createAt]
         );
 
         console.log('Product inserted, ID:', productResult.insertId);
         const productId = productResult.insertId;
 
-        // Insert the meta tag into the meta_data table
+        // Insert the meta data into the meta_data table
         await connection.execute(
-            'INSERT INTO kr_dev.meta_data (category, category_id, meta_tag, create_at) VALUES (?, ?, ?, ?)',
-            ['product_meta_data', productId, metaTag, createAt]
+            'INSERT INTO kr_dev.meta_data (category, category_id, title, description, keyword, create_at) VALUES (?, ?, ?, ?, ?, ?)',
+            ['product_meta_data', productId, title, metaDescription, keyword, createAt]
         );
-        console.log('Meta tag inserted:', metaTag);
+        console.log('Meta data inserted:', { title, metaDescription, keyword });
 
         const imageFiles = [];
         for (const [key, value] of formData.entries()) {
@@ -156,21 +169,21 @@ export async function POST(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Product, meta tag, and images added successfully' }), {
+        return new Response(JSON.stringify({ message: 'Product, meta data, and images added successfully' }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        console.error('Error adding product and meta tag:', error);
+        console.error('Error adding product and meta data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to add product and meta tag' }), {
+        return new Response(JSON.stringify({ error: 'Failed to add product and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 }
 
-// PUT method to update product with meta tag, frame, and size
+// PUT method to update product with meta data, frame, and size
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -185,9 +198,14 @@ export async function PUT(req) {
         const size = formData.get("size"); // Get size
         const status = formData.get("status");
         const tags = formData.get("tags"); // Get tags as plain string
-        const metaTag = formData.get("meta_tag"); // Get meta tag
+        const offerTag = formData.get("offer_tag"); // Get offer tag
 
-        console.log('Product Details:', { id, name, description, price, type, frame, size, status, tags, metaTag });
+        // Get meta data fields
+        const title = formData.get("meta_title");
+        const metaDescription = formData.get("meta_description");
+        const keyword = formData.get("meta_keyword");
+
+        console.log('Product Details:', { id, name, description, price, type, frame, size, status, offerTag, title, metaDescription, keyword });
 
         if (!id || !name || !description || !price || !type || !status) {
             console.error('Missing required fields');
@@ -201,26 +219,26 @@ export async function PUT(req) {
 
         // Update product details
         const [productUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, frame = ?, size = ?, status = ?, tags = ?, update_at = ? WHERE id = ?',
-            [name, description, price, type, frame, size, status, tags, updateAt, id]
+            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, frame = ?, size = ?, status = ?, offer_tag = ?, update_at = ? WHERE id = ?',
+            [name, description, price, type, frame, size, status, offerTag, updateAt, id]
         );
         console.log('Product updated:', productUpdateResult);
 
-        // Try updating the meta tag in the meta_data table
-        const [metaTagUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.meta_data SET meta_tag = ?, update_at = ? WHERE category_id = ? AND category = ?',
-            [metaTag, updateAt, id, 'product_meta_data']
+        // Try updating the meta data in the meta_data table
+        const [metaDataUpdateResult] = await connection.execute(
+            'UPDATE kr_dev.meta_data SET title = ?, description = ?, keyword = ?, update_at = ? WHERE category_id = ? AND category = ?',
+            [title, metaDescription, keyword, updateAt, id, 'product_meta_data']
         );
-        console.log('Meta tag updated:', metaTagUpdateResult);
+        console.log('Meta data updated:', metaDataUpdateResult);
 
-        // If no rows were updated, insert the meta tag instead
-        if (metaTagUpdateResult.affectedRows === 0) {
-            console.log('Meta tag does not exist, inserting new meta tag.');
+        // If no rows were updated, insert the meta data instead
+        if (metaDataUpdateResult.affectedRows === 0) {
+            console.log('Meta data does not exist, inserting new meta data.');
             await connection.execute(
-                'INSERT INTO kr_dev.meta_data (category, category_id, meta_tag, create_at, update_at) VALUES (?, ?, ?, ?, ?)',
-                ['product_meta_data', id, metaTag, updateAt, updateAt]
+                'INSERT INTO kr_dev.meta_data (category, category_id, title, description, keyword, create_at, update_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                ['product_meta_data', id, title, metaDescription, keyword, updateAt, updateAt]
             );
-            console.log('Meta tag inserted:', metaTag);
+            console.log('Meta data inserted:', { title, metaDescription, keyword });
         }
 
         const imageFiles = [];
@@ -256,14 +274,14 @@ export async function PUT(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Product, meta tag, frame, size, and images updated successfully' }), {
+        return new Response(JSON.stringify({ message: 'Product, meta data, frame, size, and images updated successfully' }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        console.error('Error updating product, meta tag, and images:', error);
+        console.error('Error updating product, meta data, and images:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to update product, meta tag, and images' }), {
+        return new Response(JSON.stringify({ error: 'Failed to update product, meta data, and images' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

@@ -1,7 +1,8 @@
+// app/user/products/ProductsPage.js
 "use client";
-import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import styles from './ProductsPage.module.css'; // Import CSS module
+import styles from './ProductsPage.module.css';
 
 const ProductsPage = () => {
     const [products, setProducts] = useState([]);
@@ -13,7 +14,7 @@ const ProductsPage = () => {
     const [selectedFrames, setSelectedFrames] = useState([]); // Track selected frames
     const [selectedSizes, setSelectedSizes] = useState([]); // Track selected sizes
     const router = useRouter();
-    
+
     // Fetch products, product types, frames, and sizes on component mount
     useEffect(() => {
         fetchProducts();
@@ -94,7 +95,7 @@ const ProductsPage = () => {
     // Filter products based on selected type, frames, and sizes
     const filterProducts = (type, selectedFrames, selectedSizes) => {
         let filtered = products;
-        
+
         if (type !== "Bestsellers") {
             filtered = filtered.filter((product) => product.type === type);
         }

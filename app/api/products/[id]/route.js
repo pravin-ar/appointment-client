@@ -29,12 +29,12 @@ export async function GET(req, { params }) {
                 p.frame,
                 p.size,
                 p.status,
-                p.tags,
+                p.offer_tag,
                 p.create_at, 
                 p.update_at, 
                 (
                     SELECT JSON_ARRAYAGG(
-                        JSON_OBJECT('path', i.path, 'sequence', i.sequence)
+                        JSON_OBJECT('id', i.id, 'path', i.path, 'sequence', i.sequence)
                     )
                     FROM kr_dev.images i
                     WHERE i.category_id = p.id 
@@ -42,13 +42,14 @@ export async function GET(req, { params }) {
                     ORDER BY i.sequence ASC
                 ) AS image_urls,
                 (
-                    SELECT meta_tag FROM kr_dev.meta_data m
+                    SELECT JSON_OBJECT('title', m.title, 'description', m.description, 'keyword', m.keyword)
+                    FROM kr_dev.meta_data m
                     WHERE m.category_id = p.id
                     AND m.category = 'product_meta_data'
-                ) AS meta_tag
+                ) AS meta_data
             FROM 
                 kr_dev.products p 
-            WHERE p.id = ?;  -- Ensure the query filters by the product id
+            WHERE p.id = ?;
             `,
             [id]
         );
@@ -60,7 +61,16 @@ export async function GET(req, { params }) {
             });
         }
 
-        return new Response(JSON.stringify(results[0]), {
+        // No need to parse; data is already in JavaScript objects
+        const product = results[0];
+        if (!product.image_urls) {
+            product.image_urls = [];
+        }
+        if (!product.meta_data) {
+            product.meta_data = {};
+        }
+
+        return new Response(JSON.stringify(product), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });

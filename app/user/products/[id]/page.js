@@ -1,78 +1,55 @@
 // app/user/products/[id]/page.js
-"use client";
-import { useEffect, useState } from 'react';
-import Footer from '../../../components/Footer'; // Import the Footer component
-import NavbarProducts from '../../../components/NavbarProducts'; // Import Navbar component
-import styles from './ProductDetail.module.css'; // Assume we create some styles
+import mysql from 'mysql2/promise';
+import ProductDetailPage from './ProductDetailPage';
 
-export default function ProductDetailPage ({ params }) {
+const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
+
+async function createConnection() {
+    return await mysql.createConnection({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+        port: DB_PORT,
+    });
+}
+
+export async function generateMetadata({ params }) {
     const { id } = params;
-    const [product, setProduct] = useState(null);
-    const [currentLargeImage, setCurrentLargeImage] = useState(null); // State for the large image
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const response = await fetch(`/api/products/${id}`);
-                const data = await response.json();
-                setProduct(data);
-                setCurrentLargeImage(data.image_urls[0]?.path); // Set initial large image if available
-            } catch (error) {
-                console.error('Error fetching product:', error);
-            }
+    // Fetch meta data for the product from the database
+    const connection = await createConnection();
+    try {
+        const [rows] = await connection.execute(
+            'SELECT title, description, keyword FROM kr_dev.meta_data WHERE category = ? AND category_id = ?',
+            ['product_meta_data', id]
+        );
+
+        await connection.end();
+
+        if (rows.length > 0) {
+            const metaData = rows[0];
+            return {
+                title: metaData.title || 'Product Detail',
+                description: metaData.description || 'Product description',
+                keywords: metaData.keyword || '',
+            };
+        } else {
+            return {
+                title: 'Product Detail',
+                description: 'Product description',
+            };
+        }
+    } catch (error) {
+        console.error('Error fetching meta data:', error);
+        await connection.end();
+        return {
+            title: 'Product Detail',
+            description: 'Product description',
         };
+    }
+}
 
-        if (id) fetchProduct();
-    }, [id]);
-
-    if (!product) return <div>Loading...</div>;
-
-    // Handle Thumbnail Click (to change large image)
-    const handleThumbnailClick = (imagePath) => {
-        setCurrentLargeImage(imagePath); // Update the large image when a thumbnail is clicked
-    };
-
-    return (
-        <>
-            <NavbarProducts /> {/* Include the Navbar separately here */}
-            <div className={styles.productDetailPage}>
-                <div className={styles.modalLeft}>
-                    {/* Large Image */}
-                    {currentLargeImage ? (
-                        <img
-                            src={currentLargeImage}
-                            alt={product.name}
-                            className={styles.largeImage}
-                        />
-                    ) : (
-                        <div>No image available</div>
-                    )}
-
-                    {/* Thumbnails */}
-                    {product.image_urls && product.image_urls.length > 0 && (
-                        <div className={styles.thumbnailContainer}>
-                            {product.image_urls.map((img, index) => (
-                                <img
-                                    key={index}
-                                    src={img.path}
-                                    alt={`Thumbnail ${index}`}
-                                    className={styles.thumbnailImage}
-                                    onClick={() => handleThumbnailClick(img.path)} // On click, change the large image
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Right Side Product Info */}
-                <div className={styles.modalRight}>
-                    <h2>{product.name}</h2>
-                    <p className={styles.productPrice}>£{product.price}</p>
-                    <p>{product.description}</p>
-                </div>
-            </div>
-            {/* Include the Footer component */}
-            <Footer />
-        </>
-    );
+export default function ProductDetailPageWrapper({ params }) {
+    return <ProductDetailPage params={params} />;
 }
