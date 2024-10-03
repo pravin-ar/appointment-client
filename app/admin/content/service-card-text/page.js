@@ -15,6 +15,9 @@ export default function ServiceCardText() {
     const [imageFile, setImageFile] = useState(null); // Single image file
     const [imageUrl, setImageUrl] = useState(''); // Existing image URL for display
     const [showDialog, setShowDialog] = useState(false); // Dialog visibility
+    const [metaTitle, setMetaTitle] = useState(''); // Meta title for SEO
+    const [metaDescription, setMetaDescription] = useState(''); // Meta description for SEO
+    const [metaKeywords, setMetaKeywords] = useState(''); // Meta keywords for SEO
 
     // Quill editor modules for toolbar configuration
     const modules = {
@@ -54,6 +57,9 @@ export default function ServiceCardText() {
         setStatus(service.status || 'Y');
         setInfo(service.info || ''); // Set rich text info
         setImageUrl(service.image_url); // Set existing image URL
+        setMetaTitle(service.meta_data?.title || ''); // Set meta title
+        setMetaDescription(service.meta_data?.description || ''); // Set meta description
+        setMetaKeywords(service.meta_data?.keywords || ''); // Set meta keywords
         setShowDialog(true); // Open the dialog
     };
 
@@ -68,6 +74,9 @@ export default function ServiceCardText() {
             formData.append('description', description);
             formData.append('status', status);
             formData.append('info', info); // Send rich text (HTML) content
+            formData.append('meta_title', metaTitle); // Meta title
+            formData.append('meta_description', metaDescription); // Meta description
+            formData.append('meta_keywords', metaKeywords); // Meta keywords
 
             if (imageFile) {
                 formData.append('file', imageFile);
@@ -122,7 +131,7 @@ export default function ServiceCardText() {
             </div>
 
             <div className="add-card-container">
-                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setStatus('Y'); setInfo(''); setImageFile(null); }}>
+                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setStatus('Y'); setInfo(''); setMetaTitle(''); setMetaDescription(''); setMetaKeywords(''); setImageFile(null); }}>
                     Add Service
                 </button>
             </div>
@@ -155,6 +164,38 @@ export default function ServiceCardText() {
                             <option value="Y">Active</option>
                             <option value="N">Inactive</option>
                         </select>
+                        {/* Meta Data Section */}
+                        <div className={styles.dialogInput}>
+                            <h4>Meta Title</h4>
+                            <input
+                                type="text"
+                                name="metaTitle"
+                                value={metaTitle}
+                                placeholder="Enter Meta Title"
+                                onChange={(e) => setMetaTitle(e.target.value)}
+                            />
+                        </div>
+
+                        <div className={styles.dialogInput}>
+                            <h4>Meta Description</h4>
+                            <textarea
+                                name="metaDescription"
+                                value={metaDescription}
+                                placeholder="Enter Meta Description"
+                                onChange={(e) => setMetaDescription(e.target.value)}
+                            />
+                        </div>
+
+                        <div className={styles.dialogInput}>
+                            <h4>Meta Keywords</h4>
+                            <input
+                                type="text"
+                                name="metaKeywords"
+                                value={metaKeywords}
+                                placeholder="Enter Meta Keywords (comma-separated)"
+                                onChange={(e) => setMetaKeywords(e.target.value)}
+                            />
+                        </div>
                         <ReactQuill
                             value={info}
                             onChange={setInfo}

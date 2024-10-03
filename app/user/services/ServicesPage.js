@@ -1,6 +1,5 @@
-// app/services/ServicesPage.js
 "use client";
-import Link from 'next/link'; // Import Link component
+import Head from 'next/head'; // Import Next.js Head for dynamic meta tag injection
 import { useEffect, useState } from 'react';
 import '../../admin/content/service-card-text/CustomQuillStyles.css'; // Import custom Quill styles
 import styles from './ServicesPage.module.css';
@@ -16,9 +15,7 @@ const ServicesPage = () => {
         if (storedServices) {
             const parsedServices = JSON.parse(storedServices);
             setServices(parsedServices);
-            if (parsedServices.length > 0) {
-                setSelectedService(parsedServices[0]);
-            }
+            setSelectedService(parsedServices[0]); // Default to first service
         } else {
             fetchServices();
         }
@@ -29,38 +26,43 @@ const ServicesPage = () => {
             const response = await fetch('/api/service-card-text');
             const data = await response.json();
 
-            // Ensure 'info' field is included
             const formattedServices = data.map((service) => ({
                 id: service.id,
                 name: service.name,
                 description: service.description,
                 image_url: service.image_url,
-                info: service.info, // Include the 'info' field
+                info: service.info,
+                keywords: service.meta_data?.keywords || 'services, more details',
+                title: service.meta_data?.title || 'title',
             }));
 
             setServices(formattedServices);
-            if (formattedServices.length > 0) {
-                setSelectedService(formattedServices[0]); // Set the first service as default
-            }
-
-            // Store services data in sessionStorage
             sessionStorage.setItem('servicesData', JSON.stringify(formattedServices));
+            setSelectedService(formattedServices[0]); // Default to first service
         } catch (error) {
             console.error('Error fetching services:', error);
         }
     };
 
-    // Handle "Read More" button click
-    const handleReadMore = (service) => {
+    // Handle service selection and dynamically inject meta tags
+    const handleServiceSelect = (service) => {
         setSelectedService(service);
+        // No URL change, just dynamically updating the meta tags
     };
 
     return (
         <div className={styles.servicesPage}>
+            {selectedService && (
+                <Head>
+                    <title>{selectedService.name}</title>
+                    <meta name="description" content={selectedService.description} />
+                    <meta name="keywords" content={selectedService.keywords} />
+                </Head>
+            )}
+
             <div className={styles.serviceDetail}>
                 {selectedService ? (
                     <>
-                        {/* Move Title Above Content */}
                         <h1 className={styles.detailTitle}>{selectedService.name}</h1>
                         <div className={styles.serviceDetailContent}>
                             <div className={styles.imageContainer}>
@@ -85,19 +87,15 @@ const ServicesPage = () => {
                                 />
                             </div>
                         )}
-                        <div className={styles.buttonContainer}>
-                            <Link href="/contact-us">
-                                <button className={styles.bookButton}>Inquiry</button>
-                            </Link>
-                        </div>
                     </>
                 ) : (
                     <p>No service selected.</p>
                 )}
             </div>
+
             <div className={styles.servicesSectionWrapper}>
                 <div className={styles.servicesContainer}>
-                    <ServicesSection services={services} onReadMore={handleReadMore} />
+                    <ServicesSection services={services} onReadMore={handleServiceSelect} />
                 </div>
             </div>
         </div>

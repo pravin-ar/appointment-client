@@ -6,14 +6,19 @@ const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, AWS_BUCKET_NAME } = pro
 
 // Utility function to create a connection
 async function createConnection() {
-    return await mysql.createConnection({
-        host: DB_HOST,
-        user: DB_USER,
-        password: DB_PASSWORD,
-        database: DB_NAME,
-        port: DB_PORT,
-        connectTimeout: 10000 // 10 seconds timeout
-    });
+    try {
+        return await mysql.createConnection({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            database: DB_NAME,
+            port: DB_PORT,
+            connectTimeout: 10000 // 10 seconds timeout
+        });
+    } catch (error) {
+        console.error("Database connection error:", error);
+        throw new Error('Failed to connect to database');
+    }
 }
 
 // S3 client configuration for file uploads
@@ -27,21 +32,28 @@ const s3Client = new S3Client({
 
 // Function to upload a file to S3
 async function uploadFileToS3(file, fileName) {
-    const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${fileName}`,
-        Body: file,
-        ContentType: "image/jpeg" // Adjust content type based on file
-    };
-    const command = new PutObjectCommand(params);
-    await s3Client.send(command);
-    return fileName;
+    try {
+        const params = {
+            Bucket: AWS_BUCKET_NAME,
+            Key: `${fileName}`,
+            Body: file,
+            ContentType: "image/jpeg" // Adjust content type based on file
+        };
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
+        return fileName;
+    } catch (error) {
+        console.error("Error uploading file to S3:", error);
+        throw new Error('Failed to upload file to S3');
+    }
 }
 
-// GET method to fetch all service cards with their image URLs, status, and info
+// GET method to fetch all service cards with their image URLs, status, and meta data
 export async function GET() {
     const connection = await createConnection();
     try {
+        console.log("Fetching service data...");
+
         const [results] = await connection.execute(`
             SELECT 
                 s.id, 
@@ -51,7 +63,13 @@ export async function GET() {
                 s.update_at, 
                 i.path AS image_url,
                 s.status,
-                t.info
+                t.info,
+                (
+                    SELECT JSON_OBJECT('title', m.title, 'description', m.description, 'keyword', m.keyword)
+                    FROM kr_dev.meta_data m
+                    WHERE m.category_id = s.id
+                    AND m.category = 'service_meta_data'
+                ) AS meta_data
             FROM 
                 kr_dev.services s 
             LEFT JOIN 
@@ -68,12 +86,15 @@ export async function GET() {
                 t.category = 'service'
         `);
 
+        console.log("Service data fetched:", results);
+
         await connection.end();
         return new Response(JSON.stringify(results), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
+        console.error('Error fetching service data:', error);
         await connection.end();
         return new Response(JSON.stringify({ error: 'Failed to fetch service card text' }), {
             status: 500,
@@ -82,16 +103,25 @@ export async function GET() {
     }
 }
 
-// POST method to add a new service card and store image URL, status, and info
+// POST method to add a new service card and store image URL, status, info, and meta data (meta tags)
 export async function POST(req) {
     const connection = await createConnection();
     try {
+        console.log("Receiving new service data...");
+
         const formData = await req.formData();
         const name = formData.get("name");
         const description = formData.get("description");
         const file = formData.get("file");
         const status = formData.get("status") || 'Y';
         const info = formData.get("info");
+
+        // Meta data fields
+        const metaTitle = formData.get("meta_title");
+        const metaDescription = formData.get("meta_description");
+        const metaKeywords = formData.get("meta_keywords");
+
+        console.log("Parsed formData:", { name, description, status, metaTitle, metaDescription, metaKeywords });
 
         if (!name || !description || !file) {
             return new Response(JSON.stringify({ error: 'Name, Description, and Image file are required' }), {
@@ -102,49 +132,68 @@ export async function POST(req) {
 
         const createAt = new Date().toISOString().split('T')[0];
 
+        // Insert service details into services table
         const [serviceResult] = await connection.execute(
             'INSERT INTO kr_dev.services (name, description, status, create_at) VALUES (?, ?, ?, ?)',
             [name, description, status, createAt]
         );
 
         const serviceId = serviceResult.insertId;
+        console.log('Service inserted with ID:', serviceId);
 
+        // Upload the image to S3
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const imageName = `services/${serviceId}-${Date.now()}.jpg`; // Adjust the extension as needed
         await uploadFileToS3(fileBuffer, imageName);
         const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
 
+        // Insert image URL into images table
         await connection.execute(
             'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
             ["service", serviceId, imageUrl, createAt]
         );
+        console.log("Image uploaded and saved in DB:", imageUrl);
 
+        // Insert info (rich text content) into text_data table, if available
         if (info) {
             await connection.execute(
                 'INSERT INTO kr_dev.text_data (category, category_id, info, create_at) VALUES (?, ?, ?, ?)',
                 ["service", serviceId, info, createAt]
             );
+            console.log("Text data saved in DB.");
+        }
+
+        // Insert meta tags (title, description, keywords) into meta_data table
+        if (metaTitle || metaDescription || metaKeywords) {
+            await connection.execute(
+                'INSERT INTO kr_dev.meta_data (category, category_id, title, description, keyword, create_at) VALUES (?, ?, ?, ?, ?, ?)',
+                ["service_meta_data", serviceId, metaTitle, metaDescription, metaKeywords, createAt]
+            );
+            console.log("Meta data saved in DB.");
         }
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service and image added successfully', serviceId }), {
+        return new Response(JSON.stringify({ message: 'Service, image, and meta data added successfully', serviceId }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
+        console.error('Error adding service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to add service and image' }), {
+        return new Response(JSON.stringify({ error: 'Failed to add service, image, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 }
 
-// PUT method to update an existing service card, its image URL, status, and info
+// PUT method to update an existing service card, its image URL, status, info, and meta data (meta tags)
 export async function PUT(req) {
     const connection = await createConnection();
     try {
+        console.log("Receiving update request for service...");
+
         const formData = await req.formData();
         const id = formData.get("id");
         const name = formData.get("name");
@@ -152,6 +201,13 @@ export async function PUT(req) {
         const file = formData.get("file");
         const status = formData.get("status");
         const info = formData.get("info");
+
+        // Meta data fields
+        const metaTitle = formData.get("meta_title");
+        const metaDescription = formData.get("meta_description");
+        const metaKeywords = formData.get("meta_keywords");
+
+        console.log("Parsed formData for update:", { id, name, description, status, metaTitle, metaDescription, metaKeywords });
 
         if (!id || !name || !description) {
             return new Response(JSON.stringify({ error: 'ID, Name, and Description are required' }), {
@@ -162,6 +218,7 @@ export async function PUT(req) {
 
         const updateAt = new Date().toISOString().split('T')[0];
 
+        // Update service details
         const [serviceUpdateResult] = await connection.execute(
             'UPDATE kr_dev.services SET name = ?, description = ?, status = ?, update_at = ? WHERE id = ?',
             [name, description, status, updateAt, id]
@@ -184,6 +241,7 @@ export async function PUT(req) {
             imageUrl = existingImage[0].path;
         }
 
+        // Upload new image if file is provided
         if (file) {
             const fileBuffer = Buffer.from(await file.arrayBuffer());
             const imageName = `services/${id}-${Date.now()}.jpg`;
@@ -201,8 +259,10 @@ export async function PUT(req) {
                     ["service", id, imageUrl, updateAt]
                 );
             }
+            console.log("Image uploaded and updated in DB:", imageUrl);
         }
 
+        // Update or insert info (rich text content) in text_data table
         const [existingTextData] = await connection.execute(
             'SELECT info FROM kr_dev.text_data WHERE category = ? AND category_id = ?',
             ["service", id]
@@ -218,17 +278,33 @@ export async function PUT(req) {
                 'INSERT INTO kr_dev.text_data (category, category_id, info, create_at) VALUES (?, ?, ?, ?)',
                 ["service", id, info, updateAt]
             );
+            console.log("Text data saved in DB.");
+        }
+
+        // Update or insert meta tags (title, description, keywords) into meta_data table
+        const [metaDataUpdateResult] = await connection.execute(
+            'UPDATE kr_dev.meta_data SET title = ?, description = ?, keyword = ?, update_at = ? WHERE category_id = ? AND category = ?',
+            [metaTitle, metaDescription, metaKeywords, updateAt, id, 'service_meta_data']
+        );
+
+        if (metaDataUpdateResult.affectedRows === 0) {
+            await connection.execute(
+                'INSERT INTO kr_dev.meta_data (category, category_id, title, description, keyword, create_at, update_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                ['service_meta_data', id, metaTitle, metaDescription, metaKeywords, updateAt, updateAt]
+            );
+            console.log("Meta data saved in DB.");
         }
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service and image updated successfully', imageUrl }), {
+        return new Response(JSON.stringify({ message: 'Service, image, and meta data updated successfully', imageUrl }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
+        console.error('Error updating service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to update service and image' }), {
+        return new Response(JSON.stringify({ error: 'Failed to update service, image, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
