@@ -34,21 +34,22 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch products with pagination, image sequence, tags, and meta data
+// GET method to fetch products with pagination, filtering by type, frame, size, and meta data
 export async function GET(req) {
     const connection = await createConnection();
     try {
-        // Parse query parameters for pagination
+        // Parse query parameters for pagination and filters
         const url = new URL(req.url);
         const page = parseInt(url.searchParams.get("page"), 10) || 1;
         const limit = parseInt(url.searchParams.get("limit"), 10) || 10;
         const offset = (page - 1) * limit;
 
-        console.log(`Fetched ${page} ${limit} products from the database.`);
+        const type = url.searchParams.get("type") || null; // Filter by type
+        const frames = url.searchParams.get("frames") ? url.searchParams.get("frames").split(',') : []; // Filter by frames
+        const sizes = url.searchParams.get("sizes") ? url.searchParams.get("sizes").split(',') : []; // Filter by sizes
 
-
-        // Construct the SQL query with limit and offset values directly in the query string
-        const query = `
+        // SQL query to fetch products with filters and pagination
+        let query = `
             SELECT 
                 p.id, 
                 p.name, 
@@ -78,14 +79,30 @@ export async function GET(req) {
                 ) AS meta_data
             FROM 
                 kr_dev.products p
-            ORDER BY p.id ASC
-            LIMIT ${limit} OFFSET ${offset}
+            WHERE 1=1 
         `;
 
-        const [results] = await connection.execute(query);
+        // Add conditions dynamically based on the selected filters
+        if (type) {
+            query += ` AND p.type = ? `;
+        }
+        if (frames.length > 0) {
+            query += ` AND p.frame IN (${frames.map(() => '?').join(', ')}) `;
+        }
+        if (sizes.length > 0) {
+            query += ` AND p.size IN (${sizes.map(() => '?').join(', ')}) `;
+        }
 
-        // Log the raw results
-        // console.log('Raw Fetched Products:', JSON.stringify(results, null, 2));
+        query += ` ORDER BY p.id ASC LIMIT ${limit} OFFSET ${offset} `;
+
+        // Prepare the parameters for the query
+        const params = [];
+        if (type) params.push(type);
+        if (frames.length > 0) params.push(...frames);
+        if (sizes.length > 0) params.push(...sizes);
+
+        // Execute the query
+        const [results] = await connection.execute(query, params);
 
         // Ensure the results contain JavaScript objects
         results.forEach(product => {
@@ -96,9 +113,6 @@ export async function GET(req) {
                 product.meta_data = {};
             }
         });
-
-        // Log the processed results
-        // console.log('Processed Products:', JSON.stringify(results, null, 2));
 
         await connection.end();
 

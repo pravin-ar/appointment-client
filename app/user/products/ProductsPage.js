@@ -4,18 +4,22 @@ import { useEffect, useState } from 'react';
 import styles from './ProductsPage.module.css';
 
 const ProductsPage = () => {
-    const [allFetchedProducts, setAllFetchedProducts] = useState([]); // Store all fetched products
     const [filteredProducts, setFilteredProducts] = useState([]); // Store filtered products
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(1);
     const productsPerPage = 10;
-    const [productTypes, setProductTypes] = useState([]);
+    const [productTypes, setProductTypes] = useState([]); // Product types state
     const [frames, setFrames] = useState([]); // State for frames
     const [sizes, setSizes] = useState([]); // State for sizes
     const [selectedType, setSelectedType] = useState("Bestsellers");
     const [selectedFrames, setSelectedFrames] = useState([]); // Track selected frames
     const [selectedSizes, setSelectedSizes] = useState([]); // Track selected sizes
+
+    // Local state to track frames and sizes before applying changes
+    const [tempSelectedFrames, setTempSelectedFrames] = useState([]); 
+    const [tempSelectedSizes, setTempSelectedSizes] = useState([]); 
+
     const router = useRouter();
 
     // Fetch product types, frames, sizes, and the first page of products on mount
@@ -23,16 +27,33 @@ const ProductsPage = () => {
         fetchProductTypes();
         fetchFrames(); // Fetch frames
         fetchSizes(); // Fetch sizes
-        fetchProducts(page);
+        fetchProducts(1, selectedType, selectedFrames, selectedSizes); // Initial fetch with default values
     }, []); // Empty dependency array ensures this runs once on mount
 
-    // Fetch products with pagination
-    const fetchProducts = async (currentPage) => {
+    // UseEffect to listen for filter changes and page changes, and trigger API calls accordingly
+    useEffect(() => {
+        if (page === 1) {
+            // If page is reset to 1, clear the previous products and reset the state
+            setFilteredProducts([]);
+        }
+        fetchProducts(page, selectedType, selectedFrames, selectedSizes); // Fetch products based on the current filters and page
+    }, [page, selectedType, selectedFrames, selectedSizes]); // Trigger API call when any filter or page changes
+
+    // Fetch products with pagination and filters
+    const fetchProducts = async (currentPage, type, frames, sizes) => {
         if (loading || !hasMore) return;
 
-        setLoading(true);
+        setLoading(true); // Set loading to true before the fetch starts
         try {
-            const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`);
+            // Build the query parameters for filtering
+            const typeParam = type !== "Bestsellers" ? `&type=${type}` : "";
+            const framesParam = frames.length > 0 ? `&frames=${frames.join(',')}` : ""; // Only add frames if selected
+            const sizesParam = sizes.length > 0 ? `&sizes=${sizes.join(',')}` : ""; // Only add sizes if selected
+
+            // Construct the full query without passing empty filters
+            const query = `/api/products?page=${currentPage}&limit=${productsPerPage}${typeParam}${framesParam}${sizesParam}`;
+
+            const response = await fetch(query);
             const data = await response.json();
 
             if (response.ok) {
@@ -40,26 +61,19 @@ const ProductsPage = () => {
                     setHasMore(false); // No more products to load
                 }
 
-                setAllFetchedProducts((prevProducts) => {
-                    // Prevent duplicate products by filtering out existing IDs
-                    const existingProductIds = new Set(prevProducts.map(p => p.id));
-                    const newProducts = data.filter(product => !existingProductIds.has(product.id));
-                    return [...prevProducts, ...newProducts];
-                });
-
-                setFilteredProducts((prevProducts) => {
-                    // Filter the new products as well
-                    const existingProductIds = new Set(prevProducts.map(p => p.id));
-                    const newFilteredProducts = data.filter(product => !existingProductIds.has(product.id));
-                    return [...prevProducts, ...newFilteredProducts];
-                });
+                if (currentPage === 1) {
+                    setFilteredProducts(data); // Replace products on the first page load or filter change
+                } else {
+                    setFilteredProducts((prevProducts) => [...prevProducts, ...data]); // Append more products on scrolling
+                }
             } else {
                 setHasMore(false);
             }
         } catch (error) {
+            console.error('Error fetching products:', error);
             setHasMore(false);
         }
-        setLoading(false);
+        setLoading(false); // Set loading to false after the fetch finishes
     };
 
     // Fetch product types from the API
@@ -95,47 +109,35 @@ const ProductsPage = () => {
         }
     };
 
-    // Handle Product Type Filter Click
+    // Handle Product Type Filter Click (Immediate API call)
     const handleTypeFilter = (type) => {
-        setSelectedType(type);
-        applyFilters(type, selectedFrames, selectedSizes); // Apply filtering after updating type
+        setSelectedType(type); // Set the selected type
+        setPage(1); // Reset page to 1
+        setHasMore(true); // Reset pagination state
     };
 
-    // Handle Frame Checkbox Change
+    // Handle Frame Checkbox Change (Stored in temp state, only applied when clicking "Apply Changes")
     const handleFrameChange = (frame) => {
-        const newSelectedFrames = selectedFrames.includes(frame)
-            ? selectedFrames.filter((f) => f !== frame)
-            : [...selectedFrames, frame];
-        setSelectedFrames(newSelectedFrames);
-        applyFilters(selectedType, newSelectedFrames, selectedSizes); // Apply filtering after updating frames
+        const newSelectedFrames = tempSelectedFrames.includes(frame)
+            ? tempSelectedFrames.filter((f) => f !== frame)
+            : [...tempSelectedFrames, frame];
+        setTempSelectedFrames(newSelectedFrames); // Set temporary state for selected frames
     };
 
-    // Handle Size Checkbox Change
+    // Handle Size Checkbox Change (Stored in temp state, only applied when clicking "Apply Changes")
     const handleSizeChange = (size) => {
-        const newSelectedSizes = selectedSizes.includes(size)
-            ? selectedSizes.filter((s) => s !== size)
-            : [...selectedSizes, size];
-        setSelectedSizes(newSelectedSizes);
-        applyFilters(selectedType, selectedFrames, newSelectedSizes); // Apply filtering after updating sizes
+        const newSelectedSizes = tempSelectedSizes.includes(size)
+            ? tempSelectedSizes.filter((s) => s !== size)
+            : [...tempSelectedSizes, size];
+        setTempSelectedSizes(newSelectedSizes); // Set temporary state for selected sizes
     };
 
-    // Filter products based on selected type, frames, and sizes
-    const applyFilters = (type, selectedFrames, selectedSizes) => {
-        let filtered = [...allFetchedProducts]; // Clone all fetched products
-
-        if (type !== "Bestsellers") {
-            filtered = filtered.filter((product) => product.type === type);
-        }
-
-        if (selectedFrames.length > 0) {
-            filtered = filtered.filter((product) => selectedFrames.includes(product.frame));
-        }
-
-        if (selectedSizes.length > 0) {
-            filtered = filtered.filter((product) => selectedSizes.includes(product.size));
-        }
-
-        setFilteredProducts(filtered); // Update the filtered products list
+    // Apply changes when the "Apply Changes" button is clicked (for frames and sizes only)
+    const applyFilters = () => {
+        setSelectedFrames(tempSelectedFrames);
+        setSelectedSizes(tempSelectedSizes);
+        setPage(1); // Reset page to 1 and ensure it's fetched first
+        setHasMore(true); // Reset pagination state
     };
 
     // Handle scroll event to implement lazy loading
@@ -145,8 +147,7 @@ const ProductsPage = () => {
                 window.innerHeight + document.documentElement.scrollTop >=
                 document.documentElement.offsetHeight - 500 && hasMore && !loading
             ) {
-                setPage((prevPage) => prevPage + 1);
-                fetchProducts(page + 1); // Fetch the next page of products
+                setPage((prevPage) => prevPage + 1); // Increment the page number to fetch the next page
             }
         };
 
@@ -154,7 +155,7 @@ const ProductsPage = () => {
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
-    }, [hasMore, loading, page]);
+    }, [hasMore, loading]);
 
     // Navigate to the product detail page
     const navigateToProductDetail = (id) => {
@@ -175,7 +176,7 @@ const ProductsPage = () => {
                             <button
                                 key={type}
                                 className={`${styles.filterButton} ${selectedType === type ? styles.activeButton : ''}`}
-                                onClick={() => handleTypeFilter(type)}
+                                onClick={() => handleTypeFilter(type)} // Immediate API call on type change
                             >
                                 {type}
                             </button>
@@ -197,7 +198,7 @@ const ProductsPage = () => {
                                             type="checkbox"
                                             id={frame.info}
                                             name="frames"
-                                            checked={selectedFrames.includes(frame.info)}
+                                            checked={tempSelectedFrames.includes(frame.info)}
                                             onChange={() => handleFrameChange(frame.info)}
                                         />
                                         <label htmlFor={frame.info}>{frame.info}</label>
@@ -213,13 +214,17 @@ const ProductsPage = () => {
                                         type="checkbox"
                                         id={size.info}
                                         name="size"
-                                        checked={selectedSizes.includes(size.info)}
+                                        checked={tempSelectedSizes.includes(size.info)}
                                         onChange={() => handleSizeChange(size.info)}
                                     />
                                     <label htmlFor={size.info}>{size.info}</label>
                                 </div>
                             ))}
                         </div>
+                        {/* Apply Changes Button */}
+                        <button className={styles.applyButton} onClick={applyFilters}>
+                            Apply Changes
+                        </button>
                     </div>
 
                     {/* Product Grid */}
@@ -237,10 +242,12 @@ const ProductsPage = () => {
                                 </div>
                             ))
                         ) : (
-                            <p>No products available for the selected filter.</p>
+                            !loading && <p>No products available for the selected filter.</p>
                         )}
                     </div>
-                    {loading && <p>Loading more products...</p>}
+
+                    {/* Loading message appears after products */}
+                    {loading && <p className={styles.loadingMessage}>Loading more products...</p>}
                     {!hasMore && !loading && <p>All products have been loaded.</p>}
                 </div>
             </div>

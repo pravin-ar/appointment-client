@@ -47,7 +47,6 @@ const ServicesPage = () => {
     // Handle service selection and dynamically inject meta tags
     const handleServiceSelect = (service) => {
         setSelectedService(service);
-        // No URL change, just dynamically updating the meta tags
     };
 
     return (
