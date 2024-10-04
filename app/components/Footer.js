@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import styles from './Footer.module.css';
 
 const Footer = () => {
+    const [services, setServices] = useState([]);
     const [policies, setPolicies] = useState([]);
     const [footerInfo, setFooterInfo] = useState({
         description: '',
@@ -17,6 +18,38 @@ const Footer = () => {
     });
 
     useEffect(() => {
+        // Fetch service name
+        const fetchServices = async () => {
+            try {
+                const response = await fetch('/api/service-card-text');
+                const data = await response.json();
+    
+                // Adjust the field names based on your actual data
+                const formattedServices = data.map((service) => ({
+                    id: service.id,
+                    name: service.name,
+                    description: service.description,
+                    image_url: service.image_url,
+                    info: service.info, // Include the 'info' field
+                    keywords: service.meta_data?.keywords || 'services, more details', // Include meta keywords
+                }));
+                setServices(formattedServices);
+    
+                // Store the services data in sessionStorage
+                sessionStorage.setItem('servicesData', JSON.stringify(formattedServices));
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
+        };
+
+        const storedServices = sessionStorage.getItem('servicesData');
+
+        if (storedServices) {
+            setServices(JSON.parse(storedServices));
+        } else {
+            fetchServices();
+        }
+
         // Fetch policies
         const storedPolicies = sessionStorage.getItem('policies');
         if (storedPolicies) {
@@ -120,12 +153,15 @@ const Footer = () => {
                 <div className={styles.footerCenter}>
                     <h3>Our Services</h3>
                     <ul>
-                        <li><a href="#">Eye Examination</a></li>
-                        <li><a href="#">Contact Lenses</a></li>
-                        <li><a href="#">Diabetic Screening</a></li>
-                        <li><a href="#">DVLA Screening</a></li>
-                        <li><a href="#">Repairs</a></li>
-                        <li><a href="#">Home Visits</a></li>
+                        {services.length > 0 ? (
+                            services.map((service) => (
+                                <li key={service.id}>
+                                    <a href={`/user/services`}>{service.name}</a>
+                                </li>
+                            ))
+                        ) : (
+                            <p className={styles.noServicesText}>No services available.</p>
+                        )}
                     </ul>
                 </div>
 

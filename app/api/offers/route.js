@@ -18,26 +18,24 @@ export async function GET() {
         const [results] = await connection.execute(
             `
             SELECT 
-                p.id, 
-                p.name, 
-                p.description, 
-                p.price, 
-                p.type, 
-                p.status, 
-                p.create_at, 
-                p.update_at,
-                (
-                    SELECT JSON_ARRAYAGG(
-                        JSON_OBJECT('path', i.path, 'sequence', i.sequence)
-                    )
-                    FROM kr_dev.images i
-                    WHERE i.category_id = p.id 
-                    AND i.category = 'product'
-                    ORDER BY i.sequence ASC
-                ) AS image_urls
-            FROM kr_dev.products p 
-            WHERE p.status = 'Y' 
-            AND FIND_IN_SET('offer', p.tags);
+    p.id, 
+    p.name, 
+    p.description, 
+    p.price, 
+    p.offer_tag,
+    (
+        SELECT JSON_ARRAYAGG(
+            JSON_OBJECT('path', i.path, 'sequence', i.sequence)
+        )
+        FROM kr_dev.images i
+        WHERE i.category_id = p.id 
+        AND i.category = 'product'
+        ORDER BY i.sequence ASC
+    ) AS image_urls
+FROM kr_dev.products p 
+WHERE p.status = 'Y' 
+AND p.offer_tag IS NOT NULL
+AND p.offer_tag != '';
             `
         );
 

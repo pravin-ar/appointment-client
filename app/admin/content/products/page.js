@@ -1,10 +1,14 @@
-// app/admin/products/page.js
 "use client";
 import { useEffect, useState } from 'react';
 import styles from './ProductCardText.module.css';
 
 export default function ProductCardText() {
-    const [products, setProducts] = useState([]);
+    const [allFetchedProducts, setAllFetchedProducts] = useState([]); // Store all fetched products
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const productsPerPage = 10;
+
     const [editingProduct, setEditingProduct] = useState(null);
     const [productTypes, setProductTypes] = useState([]); // Product Types (General)
     const [frames, setFrames] = useState([]); // Frames data
@@ -29,23 +33,15 @@ export default function ProductCardText() {
     const [metaKeyword, setMetaKeyword] = useState('');
 
     useEffect(() => {
-        fetchProducts();
         fetchProductTypes();
         fetchFrames();
         fetchSizes();
         fetchOffers(); // Fetch offer tags
-    }, []);
+        fetchProducts(page); // Fetch first page of products
+    }, []); // Empty dependency array ensures this runs once on mount
 
-    const fetchProducts = async () => {
-        try {
-            const response = await fetch('/api/products');
-            const data = await response.json();
-            setProducts(data);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-        }
-    };
 
+    // Fetch product types
     const fetchProductTypes = async () => {
         try {
             const response = await fetch('/api/product-type');
@@ -56,7 +52,7 @@ export default function ProductCardText() {
         }
     };
 
-    // Fetch frames data from the backend
+    // Fetch frames data
     const fetchFrames = async () => {
         try {
             const response = await fetch('/api/tags?category=product-frames');
@@ -67,7 +63,7 @@ export default function ProductCardText() {
         }
     };
 
-    // Fetch sizes data from the backend
+    // Fetch sizes data
     const fetchSizes = async () => {
         try {
             const response = await fetch('/api/tags?category=product-size');
@@ -78,7 +74,7 @@ export default function ProductCardText() {
         }
     };
 
-    // Fetch offers data from the backend
+    // Fetch offers data
     const fetchOffers = async () => {
         try {
             const response = await fetch('/api/tags?category=offer-tags');
@@ -88,6 +84,53 @@ export default function ProductCardText() {
             console.error('Error fetching offers:', error);
         }
     };
+
+    // Fetch products with pagination
+    const fetchProducts = async (currentPage) => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.length < productsPerPage) {
+                    setHasMore(false); // No more products to load
+                }
+
+                setAllFetchedProducts((prevProducts) => {
+                    // Prevent duplicate products by filtering out existing IDs
+                    const existingProductIds = new Set(prevProducts.map(p => p.id));
+                    const newProducts = data.filter(product => !existingProductIds.has(product.id));
+                    return [...prevProducts, ...newProducts];
+                });
+            } else {
+                setHasMore(false);
+            }
+        } catch (error) {
+            setHasMore(false);
+        }
+        setLoading(false);
+    };
+
+    // Handle scroll event to implement lazy loading
+    useEffect(() => {
+        const handleScroll = () => {
+            if (
+                window.innerHeight + document.documentElement.scrollTop >=
+                document.documentElement.offsetHeight - 500 && hasMore && !loading
+            ) {
+                setPage((prevPage) => prevPage + 1);
+                fetchProducts(page + 1); // Fetch the next page of products
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [hasMore, loading, page]);
 
     const handleEdit = (product) => {
         setEditingProduct(product);
@@ -180,32 +223,39 @@ export default function ProductCardText() {
             formData.append('frame', newProduct.frame); // Include frame in the form data
             formData.append('size', newProduct.size); // Include size in the form data
             formData.append('status', newProduct.status ? 'Y' : 'N');
-            formData.append('offer_tag', selectedOffer); // Include offer tag in the form data
-
+            
+            // If the selected offer is empty, we will treat it as a removal of the offer tag
+            if (selectedOffer) {
+                formData.append('offer_tag', selectedOffer);
+            } else {
+                formData.append('offer_tag', ''); // Clear offer tag
+            }
+    
             // Append meta data fields
             formData.append('meta_title', metaTitle);
             formData.append('meta_description', metaDescription);
             formData.append('meta_keyword', metaKeyword);
-
+    
+            // Append image files (if any)
             imageFiles.forEach((imageObj, index) => {
                 if (imageObj.file) {
                     formData.append(`file${index}`, imageObj.file);
                     formData.append(`image_id${index}`, imageObj.id);
                 }
             });
-
+    
             const response = await fetch('/api/products', {
                 method: editingProduct ? 'PUT' : 'POST',
                 body: formData,
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Failed to ${editingProduct ? 'update' : 'add'} product`);
             }
-
+    
             setEditingProduct(null);
             setShowDialog(false);
-            fetchProducts();
+            fetchProducts(1); // Refresh the product list
         } catch (error) {
             console.error(`Error ${editingProduct ? 'updating' : 'adding'} product:`, error);
         }
@@ -215,8 +265,8 @@ export default function ProductCardText() {
         <section className="admin-panel">
             <h1 className="panel-title">Manage Product Descriptions</h1>
             <div className="card-container">
-                {products.length > 0 ? (
-                    products.map((product) => (
+                {allFetchedProducts.length > 0 ? (
+                    allFetchedProducts.map((product) => (
                         <article key={product.id} className="card">
                             <header className="card-header">
                                 <h2 className="card-title">{product.name}</h2>
@@ -245,6 +295,9 @@ export default function ProductCardText() {
                     Add Product
                 </button>
             </div>
+
+            {loading && <p>Loading more products...</p>}
+            {!hasMore && !loading && <p>All products have been loaded.</p>}
 
             {showDialog && (
                 <div className={styles.dialogOverlay}>
@@ -320,7 +373,7 @@ export default function ProductCardText() {
                             value={selectedOffer}
                             onChange={(e) => setSelectedOffer(e.target.value)}
                         >
-                            <option value="">Select Offer Tag</option>
+                            <option value="">No Offer</option> {/* Option to remove offer tag */}
                             {offers.map((offer) => (
                                 <option key={offer.id} value={offer.info}>{offer.info}</option>
                             ))}

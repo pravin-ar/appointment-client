@@ -19,6 +19,7 @@ export default function BookNow() {
     const [dob, setDob] = useState(null);
     const [timeSlots, setTimeSlots] = useState([]);
     const [selectedServices, setSelectedServices] = useState([]);
+    const [serviceData, setServiceData] = useState([]); // Updated to dynamically fetch services
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -42,6 +43,26 @@ export default function BookNow() {
         }
     }, [selectedDate]);
 
+    // Fetch services from API
+    useEffect(() => {
+        fetchServices();
+    }, []);
+
+    // Fetch services data including icons
+    const fetchServices = async () => {
+        try {
+            const response = await fetch('/api/service-card-text'); // Assuming you have an API route for services
+            const data = await response.json();
+            const formattedServices = data.map(service => ({
+                name: service.name,
+                icon: service.icon_url, // Assuming icon_url is returned from the API
+            }));
+            setServiceData(formattedServices); // Set the fetched services with icons
+        } catch (error) {
+            console.error('Error fetching services:', error);
+        }
+    };
+
     // Helper function to format date in 'YYYY-MM-DD' in local time
     function formatDateLocal(date) {
         const year = date.getFullYear();
@@ -53,7 +74,7 @@ export default function BookNow() {
     const fetchAvailableSlots = async () => {
         if (!selectedDate) return;
 
-        const dateString = formatDateLocal(selectedDate); // Use local date format
+        const dateString = formatDateLocal(selectedDate);
 
         try {
             const response = await fetch(`/api/get-available-user-slots?date=${dateString}`, {
@@ -160,15 +181,6 @@ export default function BookNow() {
             setSelectedServices([...selectedServices, service]);
         }
     };
-
-    const serviceData = [
-        { name: 'Eye Examination', icon: '/assets/images/eye_examination.png' },
-        { name: 'Contact Lenses', icon: '/assets/images/contact_lenses.png' },
-        { name: 'Diabetic Screening', icon: '/assets/images/diabetic_screening.png' },
-        { name: 'DVLA Screening', icon: '/assets/images/dvla_screening.png' },
-        { name: 'Repairs', icon: '/assets/images/repairs.png' },
-        { name: 'Home Visits', icon: '/assets/images/home_visits.png' },
-    ];
 
     return (
         <>

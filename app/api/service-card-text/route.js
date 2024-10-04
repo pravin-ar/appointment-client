@@ -48,7 +48,7 @@ async function uploadFileToS3(file, fileName) {
     }
 }
 
-// GET method to fetch all service cards with their image URLs, status, and meta data
+// GET method to fetch all service cards with their image URLs, icons, status, and meta data
 export async function GET() {
     const connection = await createConnection();
     try {
@@ -62,6 +62,7 @@ export async function GET() {
                 s.create_at, 
                 s.update_at, 
                 i.path AS image_url,
+                ic.path AS icon_url,
                 s.status,
                 t.info,
                 (
@@ -78,6 +79,12 @@ export async function GET() {
                 s.id = i.category_id 
             AND 
                 i.category = 'service'
+            LEFT JOIN
+                kr_dev.images ic
+            ON
+                s.id = ic.category_id
+            AND
+                ic.category = 'service_icon'
             LEFT JOIN
                 kr_dev.text_data t
             ON
@@ -103,7 +110,7 @@ export async function GET() {
     }
 }
 
-// POST method to add a new service card and store image URL, status, info, and meta data (meta tags)
+// POST method to add a new service card and store image URL, icon URL, status, info, and meta data (meta tags)
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -113,6 +120,7 @@ export async function POST(req) {
         const name = formData.get("name");
         const description = formData.get("description");
         const file = formData.get("file");
+        const icon = formData.get("icon");
         const status = formData.get("status") || 'Y';
         const info = formData.get("info");
 
@@ -143,7 +151,7 @@ export async function POST(req) {
 
         // Upload the image to S3
         const fileBuffer = Buffer.from(await file.arrayBuffer());
-        const imageName = `services/${serviceId}-${Date.now()}.jpg`; // Adjust the extension as needed
+        const imageName = `services/${serviceId}-${Date.now()}.jpg`; 
         await uploadFileToS3(fileBuffer, imageName);
         const imageUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${imageName}`;
 
@@ -153,6 +161,21 @@ export async function POST(req) {
             ["service", serviceId, imageUrl, createAt]
         );
         console.log("Image uploaded and saved in DB:", imageUrl);
+
+        // Upload the service icon to S3
+        if (icon) {
+            const iconBuffer = Buffer.from(await icon.arrayBuffer());
+            const iconName = `services/icons/${serviceId}-${Date.now()}.jpg`; 
+            await uploadFileToS3(iconBuffer, iconName);
+            const iconUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${iconName}`;
+
+            // Insert icon URL into images table with category `service_icon`
+            await connection.execute(
+                'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
+                ["service_icon", serviceId, iconUrl, createAt]
+            );
+            console.log("Icon uploaded and saved in DB:", iconUrl);
+        }
 
         // Insert info (rich text content) into text_data table, if available
         if (info) {
@@ -174,21 +197,21 @@ export async function POST(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service, image, and meta data added successfully', serviceId }), {
+        return new Response(JSON.stringify({ message: 'Service, image, icon, and meta data added successfully', serviceId }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
         console.error('Error adding service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to add service, image, and meta data' }), {
+        return new Response(JSON.stringify({ error: 'Failed to add service, image, icon, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 }
 
-// PUT method to update an existing service card, its image URL, status, info, and meta data (meta tags)
+// PUT method to update an existing service card, its image URL, icon URL, status, info, and meta data (meta tags)
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -199,6 +222,7 @@ export async function PUT(req) {
         const name = formData.get("name");
         const description = formData.get("description");
         const file = formData.get("file");
+        const icon = formData.get("icon");
         const status = formData.get("status");
         const info = formData.get("info");
 
@@ -262,6 +286,32 @@ export async function PUT(req) {
             console.log("Image uploaded and updated in DB:", imageUrl);
         }
 
+        // Update or insert service icon if provided
+        const [existingIcon] = await connection.execute(
+            'SELECT path FROM kr_dev.images WHERE category = ? AND category_id = ?',
+            ["service_icon", id]
+        );
+
+        if (icon) {
+            const iconBuffer = Buffer.from(await icon.arrayBuffer());
+            const iconName = `services/icons/${id}-${Date.now()}.jpg`;
+            await uploadFileToS3(iconBuffer, iconName);
+            const iconUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${iconName}`;
+
+            if (existingIcon.length > 0) {
+                await connection.execute(
+                    'UPDATE kr_dev.images SET path = ?, update_at = ? WHERE category = ? AND category_id = ?',
+                    [iconUrl, updateAt, "service_icon", id]
+                );
+            } else {
+                await connection.execute(
+                    'INSERT INTO kr_dev.images (category, category_id, path, create_at) VALUES (?, ?, ?, ?)',
+                    ["service_icon", id, iconUrl, updateAt]
+                );
+            }
+            console.log("Icon uploaded and updated in DB:", iconUrl);
+        }
+
         // Update or insert info (rich text content) in text_data table
         const [existingTextData] = await connection.execute(
             'SELECT info FROM kr_dev.text_data WHERE category = ? AND category_id = ?',
@@ -297,14 +347,14 @@ export async function PUT(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service, image, and meta data updated successfully', imageUrl }), {
+        return new Response(JSON.stringify({ message: 'Service, image, icon, and meta data updated successfully', imageUrl }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
         console.error('Error updating service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to update service, image, and meta data' }), {
+        return new Response(JSON.stringify({ error: 'Failed to update service, image, icon, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

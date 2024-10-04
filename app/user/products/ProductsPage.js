@@ -1,38 +1,65 @@
-// app/user/products/ProductsPage.js
 "use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './ProductsPage.module.css';
 
 const ProductsPage = () => {
-    const [products, setProducts] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    const [selectedType, setSelectedType] = useState("Bestsellers");
+    const [allFetchedProducts, setAllFetchedProducts] = useState([]); // Store all fetched products
+    const [filteredProducts, setFilteredProducts] = useState([]); // Store filtered products
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(1);
+    const productsPerPage = 10;
     const [productTypes, setProductTypes] = useState([]);
     const [frames, setFrames] = useState([]); // State for frames
     const [sizes, setSizes] = useState([]); // State for sizes
+    const [selectedType, setSelectedType] = useState("Bestsellers");
     const [selectedFrames, setSelectedFrames] = useState([]); // Track selected frames
     const [selectedSizes, setSelectedSizes] = useState([]); // Track selected sizes
     const router = useRouter();
 
-    // Fetch products, product types, frames, and sizes on component mount
+    // Fetch product types, frames, sizes, and the first page of products on mount
     useEffect(() => {
-        fetchProducts();
         fetchProductTypes();
         fetchFrames(); // Fetch frames
         fetchSizes(); // Fetch sizes
-    }, []);
+        fetchProducts(page);
+    }, []); // Empty dependency array ensures this runs once on mount
 
-    // Fetch products from the API
-    const fetchProducts = async () => {
+    // Fetch products with pagination
+    const fetchProducts = async (currentPage) => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
         try {
-            const response = await fetch('/api/products');
+            const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`);
             const data = await response.json();
-            setProducts(data);
-            setFilteredProducts(data); // Set initial products
+
+            if (response.ok) {
+                if (data.length < productsPerPage) {
+                    setHasMore(false); // No more products to load
+                }
+
+                setAllFetchedProducts((prevProducts) => {
+                    // Prevent duplicate products by filtering out existing IDs
+                    const existingProductIds = new Set(prevProducts.map(p => p.id));
+                    const newProducts = data.filter(product => !existingProductIds.has(product.id));
+                    return [...prevProducts, ...newProducts];
+                });
+
+                setFilteredProducts((prevProducts) => {
+                    // Filter the new products as well
+                    const existingProductIds = new Set(prevProducts.map(p => p.id));
+                    const newFilteredProducts = data.filter(product => !existingProductIds.has(product.id));
+                    return [...prevProducts, ...newFilteredProducts];
+                });
+            } else {
+                setHasMore(false);
+            }
         } catch (error) {
-            console.error('Error fetching products:', error);
+            setHasMore(false);
         }
+        setLoading(false);
     };
 
     // Fetch product types from the API
@@ -71,7 +98,7 @@ const ProductsPage = () => {
     // Handle Product Type Filter Click
     const handleTypeFilter = (type) => {
         setSelectedType(type);
-        filterProducts(type, selectedFrames, selectedSizes); // Update filtering logic
+        applyFilters(type, selectedFrames, selectedSizes); // Apply filtering after updating type
     };
 
     // Handle Frame Checkbox Change
@@ -80,7 +107,7 @@ const ProductsPage = () => {
             ? selectedFrames.filter((f) => f !== frame)
             : [...selectedFrames, frame];
         setSelectedFrames(newSelectedFrames);
-        filterProducts(selectedType, newSelectedFrames, selectedSizes); // Update filtering logic
+        applyFilters(selectedType, newSelectedFrames, selectedSizes); // Apply filtering after updating frames
     };
 
     // Handle Size Checkbox Change
@@ -89,12 +116,12 @@ const ProductsPage = () => {
             ? selectedSizes.filter((s) => s !== size)
             : [...selectedSizes, size];
         setSelectedSizes(newSelectedSizes);
-        filterProducts(selectedType, selectedFrames, newSelectedSizes); // Update filtering logic
+        applyFilters(selectedType, selectedFrames, newSelectedSizes); // Apply filtering after updating sizes
     };
 
     // Filter products based on selected type, frames, and sizes
-    const filterProducts = (type, selectedFrames, selectedSizes) => {
-        let filtered = products;
+    const applyFilters = (type, selectedFrames, selectedSizes) => {
+        let filtered = [...allFetchedProducts]; // Clone all fetched products
 
         if (type !== "Bestsellers") {
             filtered = filtered.filter((product) => product.type === type);
@@ -108,8 +135,26 @@ const ProductsPage = () => {
             filtered = filtered.filter((product) => selectedSizes.includes(product.size));
         }
 
-        setFilteredProducts(filtered);
+        setFilteredProducts(filtered); // Update the filtered products list
     };
+
+    // Handle scroll event to implement lazy loading
+    useEffect(() => {
+        const handleScroll = () => {
+            if (
+                window.innerHeight + document.documentElement.scrollTop >=
+                document.documentElement.offsetHeight - 500 && hasMore && !loading
+            ) {
+                setPage((prevPage) => prevPage + 1);
+                fetchProducts(page + 1); // Fetch the next page of products
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [hasMore, loading, page]);
 
     // Navigate to the product detail page
     const navigateToProductDetail = (id) => {
@@ -148,12 +193,12 @@ const ProductsPage = () => {
                             <div className="container">
                                 {frames.map((frame) => (
                                     <div key={frame.id}>
-                                        <input 
-                                            type="checkbox" 
-                                            id={frame.info} 
+                                        <input
+                                            type="checkbox"
+                                            id={frame.info}
                                             name="frames"
                                             checked={selectedFrames.includes(frame.info)}
-                                            onChange={() => handleFrameChange(frame.info)} 
+                                            onChange={() => handleFrameChange(frame.info)}
                                         />
                                         <label htmlFor={frame.info}>{frame.info}</label>
                                     </div>
@@ -164,25 +209,16 @@ const ProductsPage = () => {
                             <h4>Size</h4>
                             {sizes.map((size) => (
                                 <div key={size.id}>
-                                    <input 
-                                        type="checkbox" 
-                                        id={size.info} 
+                                    <input
+                                        type="checkbox"
+                                        id={size.info}
                                         name="size"
                                         checked={selectedSizes.includes(size.info)}
-                                        onChange={() => handleSizeChange(size.info)} 
+                                        onChange={() => handleSizeChange(size.info)}
                                     />
                                     <label htmlFor={size.info}>{size.info}</label>
                                 </div>
                             ))}
-                        </div>
-
-                        <div className={styles.filterGroup}>
-                            <h4>Price</h4>
-                            <input type="range" min="30" max="50" step="1" className={styles.priceRange} />
-                            <div className={styles.priceInputs}>
-                                <input type="text" placeholder="£ From" className={styles.priceInput} />
-                                <input type="text" placeholder="£ To" className={styles.priceInput} />
-                            </div>
                         </div>
                     </div>
 
@@ -204,6 +240,8 @@ const ProductsPage = () => {
                             <p>No products available for the selected filter.</p>
                         )}
                     </div>
+                    {loading && <p>Loading more products...</p>}
+                    {!hasMore && !loading && <p>All products have been loaded.</p>}
                 </div>
             </div>
         </>

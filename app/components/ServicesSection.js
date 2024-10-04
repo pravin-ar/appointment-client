@@ -28,6 +28,7 @@ const ServicesSection = () => {
                 image_url: service.image_url,
                 info: service.info, // Include the 'info' field
                 keywords: service.meta_data?.keywords || 'services, more details', // Include meta keywords
+                icon: service.icon_url
             }));
             setServices(formattedServices);
 

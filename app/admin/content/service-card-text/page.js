@@ -14,6 +14,8 @@ export default function ServiceCardText() {
     const [info, setInfo] = useState(''); // Rich text info
     const [imageFile, setImageFile] = useState(null); // Single image file
     const [imageUrl, setImageUrl] = useState(''); // Existing image URL for display
+    const [iconFile, setIconFile] = useState(null); // Service icon file
+    const [iconUrl, setIconUrl] = useState(''); // Existing service icon URL for display
     const [showDialog, setShowDialog] = useState(false); // Dialog visibility
     const [metaTitle, setMetaTitle] = useState(''); // Meta title for SEO
     const [metaDescription, setMetaDescription] = useState(''); // Meta description for SEO
@@ -57,6 +59,7 @@ export default function ServiceCardText() {
         setStatus(service.status || 'Y');
         setInfo(service.info || ''); // Set rich text info
         setImageUrl(service.image_url); // Set existing image URL
+        setIconUrl(service.icon_url || ''); // Set existing icon URL
         setMetaTitle(service.meta_data?.title || ''); // Set meta title
         setMetaDescription(service.meta_data?.description || ''); // Set meta description
         setMetaKeywords(service.meta_data?.keywords || ''); // Set meta keywords
@@ -80,6 +83,9 @@ export default function ServiceCardText() {
 
             if (imageFile) {
                 formData.append('file', imageFile);
+            }
+            if (iconFile) {
+                formData.append('icon', iconFile);
             }
 
             const response = await fetch('/api/service-card-text', {
@@ -106,6 +112,13 @@ export default function ServiceCardText() {
         setImageUrl(URL.createObjectURL(file)); // Preview the uploaded image
     };
 
+    // Handle service icon change
+    const handleIconChange = (e) => {
+        const file = e.target.files[0];
+        setIconFile(file); // Store the service icon
+        setIconUrl(URL.createObjectURL(file)); // Preview the uploaded icon
+    };
+
     return (
         <section className="admin-panel">
             <h1 className="panel-title">Manage Service Descriptions</h1>
@@ -116,6 +129,9 @@ export default function ServiceCardText() {
                             <header className="card-header">
                                 <h2 className="card-title">{service.name}</h2>
                                 <img src={service.image_url} alt={service.name} className="card-image" />
+                                {service.icon_url && (
+                                    <img src={service.icon_url} alt={`${service.name} icon`} className="card-icon" />
+                                )}
                             </header>
                             <p className="card-description">{service.description}</p>
                             <p className="card-info">Info: <div dangerouslySetInnerHTML={{ __html: service.info || 'N/A' }} /></p>
@@ -131,7 +147,19 @@ export default function ServiceCardText() {
             </div>
 
             <div className="add-card-container">
-                <button className="btn add-btn" onClick={() => { setShowDialog(true); setServiceName(''); setDescription(''); setStatus('Y'); setInfo(''); setMetaTitle(''); setMetaDescription(''); setMetaKeywords(''); setImageFile(null); }}>
+                <button className="btn add-btn" onClick={() => { 
+                    setShowDialog(true); 
+                    setServiceName(''); 
+                    setDescription(''); 
+                    setStatus('Y'); 
+                    setInfo(''); 
+                    setMetaTitle(''); 
+                    setMetaDescription(''); 
+                    setMetaKeywords(''); 
+                    setImageFile(null); 
+                    setIconFile(null);
+                    setIconUrl('');
+                }}>
                     Add Service
                 </button>
             </div>
@@ -209,6 +237,14 @@ export default function ServiceCardText() {
                             <input
                                 type="file"
                                 onChange={handleImageChange}
+                            />
+                        </div>
+                        <div className={styles.dialogInput}>
+                            <h4>Service Icon</h4>
+                            {iconUrl && <img src={iconUrl} alt="Service Icon" style={{ width: '50px', marginBottom: '10px' }} />}
+                            <input
+                                type="file"
+                                onChange={handleIconChange}
                             />
                         </div>
                         <div className={styles.dialogFooter}>

@@ -34,13 +34,22 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch products with image sequence, tags, and meta data
-export async function GET() {
+// GET method to fetch products with pagination, image sequence, tags, and meta data
+export async function GET(req) {
     const connection = await createConnection();
     try {
-        console.log('Fetching all product data with images, tags, and meta data...');
-        const [results] = await connection.execute(
-            `SELECT 
+        // Parse query parameters for pagination
+        const url = new URL(req.url);
+        const page = parseInt(url.searchParams.get("page"), 10) || 1;
+        const limit = parseInt(url.searchParams.get("limit"), 10) || 10;
+        const offset = (page - 1) * limit;
+
+        console.log(`Fetched ${page} ${limit} products from the database.`);
+
+
+        // Construct the SQL query with limit and offset values directly in the query string
+        const query = `
+            SELECT 
                 p.id, 
                 p.name, 
                 p.description, 
@@ -68,12 +77,17 @@ export async function GET() {
                     AND m.category = 'product_meta_data'
                 ) AS meta_data
             FROM 
-                kr_dev.products p 
-            GROUP BY 
-                p.id;`
-        );
+                kr_dev.products p
+            ORDER BY p.id ASC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
 
-        // No need to parse; data is already JavaScript objects
+        const [results] = await connection.execute(query);
+
+        // Log the raw results
+        // console.log('Raw Fetched Products:', JSON.stringify(results, null, 2));
+
+        // Ensure the results contain JavaScript objects
         results.forEach(product => {
             if (!product.image_urls) {
                 product.image_urls = [];
@@ -83,7 +97,11 @@ export async function GET() {
             }
         });
 
+        // Log the processed results
+        // console.log('Processed Products:', JSON.stringify(results, null, 2));
+
         await connection.end();
+
         return new Response(JSON.stringify(results, null, 2), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
