@@ -34,7 +34,6 @@ async function uploadFileToS3(file, fileName) {
     return fileName;
 }
 
-// GET method to fetch products with pagination, filtering by type, frame, size, and meta data
 export async function GET(req) {
     const connection = await createConnection();
     try {
@@ -47,6 +46,7 @@ export async function GET(req) {
         const type = url.searchParams.get("type") || null; // Filter by type
         const frames = url.searchParams.get("frames") ? url.searchParams.get("frames").split(',') : []; // Filter by frames
         const sizes = url.searchParams.get("sizes") ? url.searchParams.get("sizes").split(',') : []; // Filter by sizes
+        const bestseller = url.searchParams.get("bestseller"); // Filter by bestseller
 
         // SQL query to fetch products with filters and pagination
         let query = `
@@ -59,6 +59,7 @@ export async function GET(req) {
                 p.frame,
                 p.size,
                 p.status,
+                p.bestseller,  /* Ensure bestseller field is selected */
                 p.offer_tag,
                 p.create_at, 
                 p.update_at, 
@@ -91,6 +92,9 @@ export async function GET(req) {
         }
         if (sizes.length > 0) {
             query += ` AND p.size IN (${sizes.map(() => '?').join(', ')}) `;
+        }
+        if (bestseller === 'Y') {
+            query += ` AND p.bestseller = 'Y' `; // Apply bestseller filter if it equals 'Y'
         }
 
         query += ` ORDER BY p.id ASC LIMIT ${limit} OFFSET ${offset} `;
@@ -144,6 +148,7 @@ export async function POST(req) {
         const frame = formData.get("frame"); // Get frame
         const size = formData.get("size"); // Get size
         const status = formData.get("status");
+        const bestseller = formData.get("bestseller");
         const tags = formData.get("tags"); // Get tags as a plain comma-separated string
         const offerTag = formData.get("offer_tag"); // Get offer tag
 
@@ -164,8 +169,8 @@ export async function POST(req) {
 
         const createAt = new Date().toISOString().split('T')[0];
         const [productResult] = await connection.execute(
-            'INSERT INTO kr_dev.products (name, description, price, type, frame, size, status, tags, offer_tag, create_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [name, description, price, type, frame, size, status, tags, offerTag, createAt]
+            'INSERT INTO kr_dev.products (name, description, price, type, frame, size, status, bestseller, tags, offer_tag, create_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [name, description, price, type, frame, size, status, bestseller, tags, offerTag, createAt]
         );
 
         console.log('Product inserted, ID:', productResult.insertId);
@@ -229,6 +234,7 @@ export async function PUT(req) {
         const frame = formData.get("frame"); // Get frame
         const size = formData.get("size"); // Get size
         const status = formData.get("status");
+        const bestseller = formData.get("bestseller");
         const tags = formData.get("tags"); // Get tags as plain string
         const offerTag = formData.get("offer_tag"); // Get offer tag
 
@@ -251,8 +257,8 @@ export async function PUT(req) {
 
         // Update product details
         const [productUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, frame = ?, size = ?, status = ?, offer_tag = ?, update_at = ? WHERE id = ?',
-            [name, description, price, type, frame, size, status, offerTag, updateAt, id]
+            'UPDATE kr_dev.products SET name = ?, description = ?, price = ?, type = ?, frame = ?, size = ?, status = ?,bestseller = ?, offer_tag = ?, update_at = ? WHERE id = ?',
+            [name, description, price, type, frame, size, status, bestseller, offerTag, updateAt, id]
         );
         console.log('Product updated:', productUpdateResult);
 

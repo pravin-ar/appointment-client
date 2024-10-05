@@ -1,0 +1,165 @@
+/* app/components/NavbarAboutUs.module.css */
+
+/* Base Styles */
+.toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative; /* For absolute positioning on mobile/tablet */
+    padding: 0 40px; /* Adjust padding as needed */
+    height: 80px; /* Adjust height as necessary */
+    box-sizing: border-box;
+    background-color: #fff; /* Default background */
+    box-shadow: none; /* Remove default shadow */
+}
+
+.navbarLeft {
+    display: flex;
+    align-items: center;
+}
+
+.navbarCenter {
+    display: flex;
+    align-items: center;
+    gap: 60px; /* Space between navigation links */
+}
+
+.navbarRight {
+    display: none; /* Hidden on desktop */
+}
+
+.logo {
+    width: 277px;
+    height: 78px;
+}
+
+.navLink {
+    font-size: 24px;
+    font-weight: 700;
+    color: #383838;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.navLink:hover {
+    color: #0066cc;
+}
+
+.menuButton {
+    display: none; /* Hidden on desktop */
+}
+
+.backButton {
+    /* Style for back button */
+    padding: 8px;
+}
+
+/* Active menu item with pink background */
+.activeMenuItem {
+    background-color: #EC008B; /* Pink background */
+    color: #fff; /* White text */
+}
+
+.activeMenuItem .navLink {
+    color: #fff; /* White text */
+}
+
+.activeMenuItemIcon {
+    margin-top: 8px; /* Space between icon and text on desktop */
+    width: 40px; /* Icon width */
+    height: 16px; /* Icon height */
+}
+
+/* Menu item content: icon and text */
+.menuItemContent {
+    display: flex;
+    align-items: center;
+    flex-direction: column; /* Default: column for desktop */
+    text-align: center; /* Center text and icon */
+}
+
+.menuText {
+    /* For tablet and mobile */
+    /* Initially same as .navLink, adjusted in media queries */
+}
+
+.menuIcon {
+    /* Default icon styles */
+    margin-left: 0; /* Reset margin for desktop */
+}
+
+/* Responsive Styles for Tablet and Mobile */
+
+@media (max-width: 1200px) {
+    /* Show menu button */
+    .menuButton {
+        display: block;
+    }
+
+    /* Position back button on the left */
+    .navbarLeft {
+        position: absolute;
+        left: 20px;
+    }
+
+    /* Position menu button on the right */
+    .navbarRight {
+        display: flex; /* Show menu button */
+        position: absolute;
+        right: 20px;
+    }
+
+    /* Centered logo */
+    .navbarCenter {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        gap: 0; /* Remove gap since only logo is present */
+        display: flex; /* Ensure it's visible */
+    }
+
+    .logo {
+        width: 196px;
+        height: 52px;
+    }
+
+    /* Menu Text Styling for Tablet and Mobile */
+    .menuText {
+        font-size: 14px;
+        font-weight: 700;
+        color: #383838;
+    }
+
+    /* Glass Icon Styling for Tablet and Mobile */
+    .menuIcon {
+        width: 40px;
+        height: 16px;
+        margin-left: 10px; /* Space between text and icon */
+    }
+
+    /* Override .menuItemContent to flex-direction: row on mobile/tablet */
+    .menuItemContent {
+        flex-direction: row;
+        text-align: left; /* Align text and icon to the left */
+    }
+}
+
+@media (max-width: 600px) {
+    .logo {
+        width: 102px;
+        height: 27px;
+    }
+
+    /* Further adjust menu text for mobile if needed */
+    .menuText {
+        font-size: 14px; /* Already set for tablet and mobile */
+    }
+
+    /* Adjust icon size for smaller mobile screens if necessary */
+    .menuIcon {
+        width: 40px; /* Maintains consistent sizing */
+        height: 16px;
+    }
+}

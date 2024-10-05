@@ -4,54 +4,58 @@ import { useEffect, useState } from 'react';
 import styles from './ProductsPage.module.css';
 
 const ProductsPage = () => {
-    const [filteredProducts, setFilteredProducts] = useState([]); // Store filtered products
-    const [loading, setLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [page, setPage] = useState(1);
-    const productsPerPage = 10;
-    const [productTypes, setProductTypes] = useState([]); // Product types state
-    const [frames, setFrames] = useState([]); // State for frames
-    const [sizes, setSizes] = useState([]); // State for sizes
-    const [selectedType, setSelectedType] = useState("Bestsellers");
-    const [selectedFrames, setSelectedFrames] = useState([]); // Track selected frames
-    const [selectedSizes, setSelectedSizes] = useState([]); // Track selected sizes
+    // State to manage product filtering and loading status
+    const [filteredProducts, setFilteredProducts] = useState([]); 
+    const [loading, setLoading] = useState(false); 
+    const [hasMore, setHasMore] = useState(true); 
+    const [page, setPage] = useState(1); 
+    const productsPerPage = 10; 
 
-    // Local state to track frames and sizes before applying changes
+    // Filter states
+    const [productTypes, setProductTypes] = useState([]); // Product types
+    const [frames, setFrames] = useState([]); // Frames for filtering
+    const [sizes, setSizes] = useState([]); // Sizes for filtering
+    const [selectedType, setSelectedType] = useState(""); // Product type
+    const [selectedFrames, setSelectedFrames] = useState([]); // Selected frames
+    const [selectedSizes, setSelectedSizes] = useState([]); // Selected sizes
+    const [isBestseller, setIsBestseller] = useState(true); // Bestseller flag, defaults to true
+
+    // Temporary states for holding filter changes before applying
     const [tempSelectedFrames, setTempSelectedFrames] = useState([]); 
     const [tempSelectedSizes, setTempSelectedSizes] = useState([]); 
 
     const router = useRouter();
 
-    // Fetch product types, frames, sizes, and the first page of products on mount
+    // Fetch initial data on component mount
     useEffect(() => {
-        fetchProductTypes();
-        fetchFrames(); // Fetch frames
-        fetchSizes(); // Fetch sizes
-        fetchProducts(1, selectedType, selectedFrames, selectedSizes); // Initial fetch with default values
-    }, []); // Empty dependency array ensures this runs once on mount
+        fetchProductTypes();  // Fetch product categories
+        fetchFrames();        // Fetch available frames
+        fetchSizes();         // Fetch available sizes
+        fetchProducts(1, "", [], [], true); // Initially fetch bestseller products
+    }, []); // Run once on mount
 
-    // UseEffect to listen for filter changes and page changes, and trigger API calls accordingly
+    // Fetch products when filters or page change
     useEffect(() => {
         if (page === 1) {
-            // If page is reset to 1, clear the previous products and reset the state
-            setFilteredProducts([]);
+            setFilteredProducts([]); // Clear products when filters change
         }
-        fetchProducts(page, selectedType, selectedFrames, selectedSizes); // Fetch products based on the current filters and page
-    }, [page, selectedType, selectedFrames, selectedSizes]); // Trigger API call when any filter or page changes
+        fetchProducts(page, selectedType, selectedFrames, selectedSizes, isBestseller); // Fetch products
+    }, [page, selectedType, selectedFrames, selectedSizes, isBestseller]); 
 
-    // Fetch products with pagination and filters
-    const fetchProducts = async (currentPage, type, frames, sizes) => {
-        if (loading || !hasMore) return;
+    // Fetch products based on current page and filters
+    const fetchProducts = async (currentPage, type, frames, sizes, bestseller) => {
+        if (loading || !hasMore) return; // Prevent fetch if already loading or no more products
 
-        setLoading(true); // Set loading to true before the fetch starts
+        setLoading(true);
         try {
-            // Build the query parameters for filtering
-            const typeParam = type !== "Bestsellers" ? `&type=${type}` : "";
-            const framesParam = frames.length > 0 ? `&frames=${frames.join(',')}` : ""; // Only add frames if selected
-            const sizesParam = sizes.length > 0 ? `&sizes=${sizes.join(',')}` : ""; // Only add sizes if selected
+            // Construct query parameters
+            const typeParam = type ? `&type=${type}` : "";
+            const bestsellerParam = bestseller ? `&bestseller=Y` : ""; // Only add bestseller if true
+            const framesParam = frames.length > 0 ? `&frames=${frames.join(',')}` : "";
+            const sizesParam = sizes.length > 0 ? `&sizes=${sizes.join(',')}` : "";
 
-            // Construct the full query without passing empty filters
-            const query = `/api/products?page=${currentPage}&limit=${productsPerPage}${typeParam}${framesParam}${sizesParam}`;
+            // Build the full query URL
+            const query = `/api/products?page=${currentPage}&limit=${productsPerPage}${typeParam}${bestsellerParam}${framesParam}${sizesParam}`;
 
             const response = await fetch(query);
             const data = await response.json();
@@ -61,109 +65,121 @@ const ProductsPage = () => {
                     setHasMore(false); // No more products to load
                 }
 
+                // Update state with new products
                 if (currentPage === 1) {
-                    setFilteredProducts(data); // Replace products on the first page load or filter change
+                    setFilteredProducts(data); // Set products for the first page
                 } else {
-                    setFilteredProducts((prevProducts) => [...prevProducts, ...data]); // Append more products on scrolling
+                    setFilteredProducts((prevProducts) => [...prevProducts, ...data]); // Append new products for subsequent pages
                 }
             } else {
-                setHasMore(false);
+                setHasMore(false); // Stop further fetches if response is invalid
             }
         } catch (error) {
             console.error('Error fetching products:', error);
             setHasMore(false);
         }
-        setLoading(false); // Set loading to false after the fetch finishes
+        setLoading(false);
     };
 
-    // Fetch product types from the API
+    // Fetch product types
     const fetchProductTypes = async () => {
         try {
             const response = await fetch('/api/product-type');
             const types = await response.json();
-            setProductTypes(types); // Set available product types
+            setProductTypes(types);
         } catch (error) {
             console.error('Error fetching product types:', error);
         }
     };
 
-    // Fetch frames from the API
+    // Fetch available frames
     const fetchFrames = async () => {
         try {
             const response = await fetch('/api/tags?category=product-frames');
             const data = await response.json();
-            setFrames(data); // Set frames from the response
+            setFrames(data);
         } catch (error) {
             console.error('Error fetching frames:', error);
         }
     };
 
-    // Fetch sizes from the API
+    // Fetch available sizes
     const fetchSizes = async () => {
         try {
             const response = await fetch('/api/tags?category=product-size');
             const data = await response.json();
-            setSizes(data); // Set sizes from the response
+            setSizes(data);
         } catch (error) {
             console.error('Error fetching sizes:', error);
         }
     };
 
-    // Handle Product Type Filter Click (Immediate API call)
+    // Handle product type filter change
     const handleTypeFilter = (type) => {
-        setSelectedType(type); // Set the selected type
-        setPage(1); // Reset page to 1
-        setHasMore(true); // Reset pagination state
+        setSelectedType(type); 
+        setIsBestseller(false); // Automatically deselect bestseller when a product type is selected
+        setPage(1); // Reset to first page on filter change
+        setHasMore(true); // Reset pagination
+        fetchProducts(1, type, selectedFrames, selectedSizes, false); // Fetch products without bestseller filter
     };
 
-    // Handle Frame Checkbox Change (Stored in temp state, only applied when clicking "Apply Changes")
+    // Handle bestseller filter
+    const handleBestsellerClick = () => {
+        setSelectedType(""); // Clear any selected product type
+        setIsBestseller(true); // Always keep bestseller selected when clicked
+        setPage(1); // Reset to first page
+        setHasMore(true); // Reset pagination
+    };
+
+    // Handle frame filter change
     const handleFrameChange = (frame) => {
-        const newSelectedFrames = tempSelectedFrames.includes(frame)
+        const updatedFrames = tempSelectedFrames.includes(frame)
             ? tempSelectedFrames.filter((f) => f !== frame)
             : [...tempSelectedFrames, frame];
-        setTempSelectedFrames(newSelectedFrames); // Set temporary state for selected frames
+        setTempSelectedFrames(updatedFrames);
     };
 
-    // Handle Size Checkbox Change (Stored in temp state, only applied when clicking "Apply Changes")
+    // Handle size filter change
     const handleSizeChange = (size) => {
-        const newSelectedSizes = tempSelectedSizes.includes(size)
+        const updatedSizes = tempSelectedSizes.includes(size)
             ? tempSelectedSizes.filter((s) => s !== size)
             : [...tempSelectedSizes, size];
-        setTempSelectedSizes(newSelectedSizes); // Set temporary state for selected sizes
+        setTempSelectedSizes(updatedSizes);
     };
 
-    // Apply changes when the "Apply Changes" button is clicked (for frames and sizes only)
+    // Apply filters for frames and sizes
     const applyFilters = () => {
         setSelectedFrames(tempSelectedFrames);
         setSelectedSizes(tempSelectedSizes);
-        setPage(1); // Reset page to 1 and ensure it's fetched first
-        setHasMore(true); // Reset pagination state
+        setPage(1); // Reset to first page after applying filters
+        setHasMore(true);
     };
 
-    // Handle scroll event to implement lazy loading
+    // Handle scroll for lazy loading more products
     useEffect(() => {
         const handleScroll = () => {
             if (
                 window.innerHeight + document.documentElement.scrollTop >=
                 document.documentElement.offsetHeight - 500 && hasMore && !loading
             ) {
-                setPage((prevPage) => prevPage + 1); // Increment the page number to fetch the next page
+                setPage((prevPage) => prevPage + 1); // Increment page to load more products
             }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => {
-            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scroll', handleScroll); // Clean up the scroll event
         };
     }, [hasMore, loading]);
 
-    // Navigate to the product detail page
+    // Navigate to product detail page
     const navigateToProductDetail = (id) => {
-        router.push(`/user/products/${id}`); // Use the router to navigate
+        router.push(`/user/products/${id}`); // Navigate using Next.js router
     };
 
     return (
         <>
+            {/* Page Header */}
             <div className={styles.pageStart}>
                 <div className={styles.header}>
                     <h1>Our Products</h1>
@@ -171,22 +187,32 @@ const ProductsPage = () => {
                         We offer a wide range of products, including stylish eyewear, high-performance sportswear, and comfortable contact lenses.
                         Discover the perfect fit for your lifestyle today!
                     </p>
+                    {/* Filter Buttons */}
                     <div className={styles.filterButtons}>
-                        {["Bestsellers", ...productTypes.map((type) => type.type)].map((type) => (
+                        <button
+                            className={`${styles.filterButton} ${isBestseller ? styles.activeButton : ''}`}
+                            onClick={handleBestsellerClick}
+                        >
+                            Bestsellers
+                        </button>
+                        {productTypes.map((type) => (
                             <button
-                                key={type}
-                                className={`${styles.filterButton} ${selectedType === type ? styles.activeButton : ''}`}
-                                onClick={() => handleTypeFilter(type)} // Immediate API call on type change
+                                key={type.id}
+                                className={`${styles.filterButton} ${selectedType === type.type ? styles.activeButton : ''}`}
+                                onClick={() => handleTypeFilter(type.type)}
                             >
-                                {type}
+                                {type.type}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {/* Main Products Page Content */}
             <div className={styles.productsPage}>
                 <div className={styles.content}>
-                    {/* Filter Sidebar */}
+                    
+                    {/* Sidebar for Filters */}
                     <div className={styles.sidebar}>
                         <h3>Categories</h3>
                         <div className={styles.filterGroup}>
@@ -221,7 +247,8 @@ const ProductsPage = () => {
                                 </div>
                             ))}
                         </div>
-                        {/* Apply Changes Button */}
+
+                        {/* Apply Filters Button */}
                         <button className={styles.applyButton} onClick={applyFilters}>
                             Apply Changes
                         </button>
@@ -246,7 +273,7 @@ const ProductsPage = () => {
                         )}
                     </div>
 
-                    {/* Loading message appears after products */}
+                    {/* Loading and Pagination Messages */}
                     {loading && <p className={styles.loadingMessage}>Loading more products...</p>}
                     {!hasMore && !loading && <p>All products have been loaded.</p>}
                 </div>

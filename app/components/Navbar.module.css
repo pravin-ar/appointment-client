@@ -9,17 +9,39 @@
     font-family: Arial, sans-serif;
 }
 
+.toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .navbarLeft {
     display: flex;
     align-items: center;
 }
 
+/* Logo size for desktop (default) */
 .logo {
-    align-items: baseline;
     margin-left: 40px;
-    width: 340.5px;
+    width: 365px;
     height: 96px;
-    /* Adjust margin as necessary */
+}
+
+/* Adjust logo size for tablet screens */
+@media (max-width: 1200px) {
+    .logo {
+        width: 196px;
+        height: 52px;
+    }
+}
+
+/* Adjust logo size for mobile screens */
+@media (max-width: 600px) {
+    .logo {
+        width: 102px;
+        height: 27px;
+    }
 }
 
 .navbarCenter {
@@ -29,7 +51,7 @@
 }
 
 .navLink {
-    padding-right: 0; /* Remove padding to control space with gap */
+    padding-right: 0;
     font-size: 24px;
     font-weight: 700;
     color: #383838;
@@ -39,43 +61,18 @@
 
 .navLink:hover {
     color: #0066cc;
-    /* Hover color for navigation links */
 }
 
-/* Style for combining the glass icon and Book appointment link */
-.navLinkWithIconAboutUs,
-.navLinkWithIcon {
-    display: flex;
-    align-items: center;
-    /* No flex-direction to keep the icon beside text */
-    gap: 10px; /* Space between icon and text */
-    position: relative; /* Relative position to control icon placement */
+.menuButton {
+    display: none; /* Hidden on larger screens */
 }
 
-/* Styles for About Us icon */
-.glassIconAboutUs {
-    position: absolute;
-    top: -30px; /* Adjust this to move the icon above the text */
-    left: 50%; /* Center the icon above the text */
-    transform: translateX(-50%); /* Center alignment */
-}
-
-/* Styles for Book Now icon */
-.glassIconBookNow {
-    position: absolute;
-    top: -30px; /* Adjust this to move the icon above the text */
-    left: 50%; /* Center the icon above the text */
-    transform: translateX(-50%); /* Center alignment */
-}
-
-/* Adjust text alignment */
-.navLinkWithIcon .navLink,
-.navLinkWithIconAboutUs .navLink {
-    margin-top: 0px; /* Create space above the text for the icon */
-    padding-right: 0; /* Remove extra padding */
-    text-align: center; /* Center the text below the icon */
-}
-
-.navbarCenter:last-child{
-    padding-right: 50px;
+/* Media query for tablet and mobile (hamburger icon) */
+@media (max-width: 1200px) {
+    .navbarCenter {
+        display: none; /* Hide links on tablet and mobile */
+    }
+    .menuButton {
+        display: block; /* Show hamburger menu on tablet and mobile */
+    }
 }

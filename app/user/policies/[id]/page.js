@@ -2,9 +2,9 @@
 
 import { useParams } from 'next/navigation'; // Use next/navigation for dynamic params
 import { useEffect, useState } from 'react';
-import styles from '../../../components/AboutUsContent.module.css'; // Reuse the styles from About Us
 import Footer from '../../../components/Footer'; // Reuse the Footer
 import NavbarHome from '../../../components/NavbarHome'; // Reuse the Navbar from About Us
+import styles from '../../aboutus/AboutUsContent.module.css'; // Reuse the styles from About Us
 
 export default function PolicyDetail() {
     const { id } = useParams(); // Get the policy ID from the URL

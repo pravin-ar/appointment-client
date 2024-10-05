@@ -1,10 +1,8 @@
-/* styles/Footer.module.css */
+/* app/components/Footer.module.css */
 
 .footer {
     background-color: #FFFFFF;
-    padding-bottom: 200px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 60px 20px; /* Adjusted padding for better spacing */
     text-align: left;
 }
 
@@ -13,47 +11,52 @@
     justify-content: space-between;
     align-items: flex-start; /* Align items to the top */
     padding: 0 20px;
-    max-width: 100%; /* Max width for better content alignment */
+    max-width: 1200px; /* Set a max-width for better content alignment */
     margin: 0 auto; /* Center the container */
+    flex-wrap: nowrap; /* Prevent wrapping on tablet and desktop */
+    gap: 20px; /* Use gap instead of margins for spacing */
 }
 
 .footerLeft,
 .footerCenter,
 .footerRight {
-    flex: 1;
-    margin: 0 100px;
+    flex: 1 1 23%; /* Reduced flex-basis to accommodate gaps */
+    min-width: 200px; /* Ensure a minimum width to prevent shrinking */
+    box-sizing: border-box; /* Include padding and border in width calculations */
 }
 
 .footerLeft {
-    max-width: 316px;
+    max-width: 316px; /* Maintain original max-width */
     width: 100%;
     padding: 0; /* Ensure no padding reduces effective width */
-    box-sizing: border-box; /* Ensure padding and borders are included in width */
 }
 
 .footerLeft .logo {
-    /* margin: 18px 0; */
-    width: 203px; /* Adjusted width */
-    height: 57px; /* Adjusted height */
+    width: 203px; /* Desktop width */
+    height: 57px; /* Desktop height */
+    position: relative; /* Required for Next.js Image component with layout="fill" */
 }
 
 .footerLeft p {
-    font-size: 18px;
+    font-size: 16px; /* Adjust font size for readability */
     font-weight: 500;
-    line-height: 21.6px;
-    min-width: 316px;
-    margin: 18px 0;
+    line-height: 1.5;
+    margin: 12px 0;
     color: #959595; /* Darker font color for contrast */
 }
 
 .footerLeft p:not(:last-child) {
-    margin-bottom: 20px; /* Margin below all paragraphs except last one */
+    margin-bottom: 16px; /* Margin below all paragraphs except last one */
 }
 
 .footerLeft a {
     color: #0066cc; /* Color for links */
     text-decoration: none;
     display: inline-block; /* Make links behave as block elements */
+}
+
+.footerLeft a:hover {
+    text-decoration: underline; /* Underline on hover for better UX */
 }
 
 .footerCenter h3,
@@ -68,16 +71,17 @@
 .footerRight ul {
     list-style-type: none; /* Remove list style */
     padding: 0;
+    margin: 0;
 }
 
 .footerCenter ul li,
 .footerRight ul li {
-    margin: 18px 0; /* Space between list items */
+    margin: 12px 0; /* Space between list items */
 }
 
 .footerCenter ul li a,
 .footerRight ul li a {
-    font-size: 18px;
+    font-size: 16px; /* Adjust font size for readability */
     font-weight: 600;
     line-height: 1.6;
     color: #959595;
@@ -89,13 +93,54 @@
     color: #0066cc; /* Hover color */
 }
 
-/* New class for contact information spacing */
 .contactInfo {
-    line-height: 2; /* Increase line-height for spacing between lines */
-    margin: 18px 0; /* Add margin around the paragraph */
+    line-height: 1.8; /* Increase line-height for spacing between lines */
+    margin: 12px 0; /* Add margin around the paragraph */
 }
 
-@media (max-width: 768px) {
+.noServicesText {
+    font-size: 16px;
+    color: #999999;
+    margin-top: 12px;
+}
+
+/* Responsive Styles */
+
+/* Tablet Styles */
+@media (min-width: 601px) and (max-width: 1024px) {
+    /* Header Styles for Tablet */
+    .footerCenter h3,
+    .footerRight h3 {
+        font-size: 12px;
+        font-weight: 700;
+        color: #545454;
+    }
+
+    /* List Item Styles for Tablet */
+    .footerCenter ul li a,
+    .footerRight ul li a {
+        font-size: 10px;
+        font-weight: 600;
+        color: #959595;
+    }
+
+    /* Description and Contact Info Styles for Tablet */
+    .footerLeft p,
+    .contactInfo {
+        color: #959595;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    /* Logo Sizing for Tablet */
+    .footerLeft .logo {
+        width: 117.57px; /* Tablet width */
+        height: 33.01px; /* Tablet height */
+    }
+}
+
+/* Mobile Styles */
+@media (max-width: 600px) {
     .footerContainer {
         flex-direction: column;
         align-items: center;
@@ -105,11 +150,25 @@
     .footerLeft,
     .footerCenter,
     .footerRight {
-        margin-bottom: 30px;
+        flex: 1 1 100%; /* Single column */
+        margin: 10px 0;
     }
 
-    .footerLeft {
-        max-width: none; /* Remove max-width on smaller screens */
-        width: 100%; /* Take full width */
+    .footerLeft .logo {
+        width: 113.96px; /* Mobile width */
+        height: 32px; /* Mobile height */
+        margin: 0 auto; /* Center the logo */
+    }
+
+    .footerLeft p,
+    .contactInfo,
+    .footerCenter ul li a,
+    .footerRight ul li a {
+        font-size: 14px; /* Further reduce font size for mobile */
+    }
+
+    .footerCenter h3,
+    .footerRight h3 {
+        font-size: 18px;
     }
 }

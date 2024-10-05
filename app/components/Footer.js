@@ -18,24 +18,21 @@ const Footer = () => {
     });
 
     useEffect(() => {
-        // Fetch service name
+        // Fetch services
         const fetchServices = async () => {
             try {
                 const response = await fetch('/api/service-card-text');
                 const data = await response.json();
-    
-                // Adjust the field names based on your actual data
+
                 const formattedServices = data.map((service) => ({
                     id: service.id,
                     name: service.name,
                     description: service.description,
                     image_url: service.image_url,
-                    info: service.info, // Include the 'info' field
-                    keywords: service.meta_data?.keywords || 'services, more details', // Include meta keywords
+                    info: service.info,
+                    keywords: service.meta_data?.keywords || 'services, more details',
                 }));
                 setServices(formattedServices);
-    
-                // Store the services data in sessionStorage
                 sessionStorage.setItem('servicesData', JSON.stringify(formattedServices));
             } catch (error) {
                 console.error('Error fetching services:', error);
@@ -43,7 +40,6 @@ const Footer = () => {
         };
 
         const storedServices = sessionStorage.getItem('servicesData');
-
         if (storedServices) {
             setServices(JSON.parse(storedServices));
         } else {
@@ -51,20 +47,42 @@ const Footer = () => {
         }
 
         // Fetch policies
+        const fetchPolicies = async () => {
+            try {
+                const res = await fetch('/api/policies');
+                const data = await res.json();
+                setPolicies(data);
+                sessionStorage.setItem('policies', JSON.stringify(data));
+            } catch (error) {
+                console.error('Error fetching policies:', error);
+            }
+        };
+
         const storedPolicies = sessionStorage.getItem('policies');
         if (storedPolicies) {
             setPolicies(JSON.parse(storedPolicies));
         } else {
-            const fetchPolicies = async () => {
-                const res = await fetch('/api/policies');
-                const data = await res.json();
-                setPolicies(data);
-                sessionStorage.setItem('policies', JSON.stringify(data)); // Store in sessionStorage
-            };
             fetchPolicies();
         }
 
         // Fetch footer info
+        const fetchFooterInfo = async () => {
+            try {
+                const res = await fetch('/api/footer-info');
+                const data = await res.json();
+                setFooterInfo({
+                    description: data.description || '',
+                    email: data.email || '',
+                    website: data.website || '',
+                    address: data.address || '',
+                    number: data.number || '',
+                });
+                sessionStorage.setItem('footerInfo', JSON.stringify(data));
+            } catch (error) {
+                console.error('Error fetching footer info:', error);
+            }
+        };
+
         const storedFooterInfo = sessionStorage.getItem('footerInfo');
         if (storedFooterInfo) {
             const data = JSON.parse(storedFooterInfo);
@@ -76,18 +94,6 @@ const Footer = () => {
                 number: data.number || '',
             });
         } else {
-            const fetchFooterInfo = async () => {
-                const res = await fetch('/api/footer-info');
-                const data = await res.json();
-                setFooterInfo({
-                    description: data.description || '',
-                    email: data.email || '',
-                    website: data.website || '',
-                    address: data.address || '',
-                    number: data.number || '',
-                });
-                sessionStorage.setItem('footerInfo', JSON.stringify(data));
-            };
             fetchFooterInfo();
         }
     }, []);
@@ -103,12 +109,14 @@ const Footer = () => {
                         <Image
                             src="/assets/images/keena_logo.png" // Replace with your logo path
                             alt="Keena Rakkado Logo"
-                            width={203} // Adjust as necessary
-                            height={57} // Adjust as necessary
+                            layout="fill" // Ensures the image fills the container
+                            objectFit="contain"
                         />
                     </div>
                     {description && (
-                        <p dangerouslySetInnerHTML={{ __html: description }} />
+                        <p
+                            dangerouslySetInnerHTML={{ __html: description }}
+                        />
                     )}
                     <p className={styles.contactInfo}>
                         {address && (
@@ -132,7 +140,9 @@ const Footer = () => {
                         {website && (
                             <>
                                 <strong>Website:</strong>{' '}
-                                <a href={website}>{website}</a>
+                                <a href={website} target="_blank" rel="noopener noreferrer">
+                                    {website}
+                                </a>
                             </>
                         )}
                     </p>
@@ -142,10 +152,18 @@ const Footer = () => {
                 <div className={styles.footerCenter}>
                     <h3>Navigation</h3>
                     <ul>
-                        <li><a href="/user/aboutus">About Us</a></li>
-                        <li><a href="/user/faq">FAQ</a></li>
-                        <li><a href="/user/contact-us">Contact Us</a></li>
-                        <li><a href="/user/policy">Our Policy</a></li>
+                        <li>
+                            <Link href="/user/aboutus">About Us</Link>
+                        </li>
+                        <li>
+                            <Link href="/user/faq">FAQ</Link>
+                        </li>
+                        <li>
+                            <Link href="/user/contact-us">Contact Us</Link>
+                        </li>
+                        <li>
+                            <Link href="/user/policy">Our Policy</Link>
+                        </li>
                     </ul>
                 </div>
 
@@ -156,7 +174,9 @@ const Footer = () => {
                         {services.length > 0 ? (
                             services.map((service) => (
                                 <li key={service.id}>
-                                    <a href={`/user/services`}>{service.name}</a>
+                                    <Link href={`/user/services/${service.id}`}>
+                                        {service.name}
+                                    </Link>
                                 </li>
                             ))
                         ) : (
@@ -169,7 +189,7 @@ const Footer = () => {
                 <div className={styles.footerRight}>
                     <h3>Policies</h3>
                     <ul>
-                        {policies.map(policy => (
+                        {policies.map((policy) => (
                             <li key={policy.id}>
                                 <Link href={`/user/policies/${policy.id}`}>
                                     {policy.name}

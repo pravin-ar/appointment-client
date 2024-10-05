@@ -23,6 +23,7 @@ export default function ProductCardText() {
         price: '',
         type: '',
         status: false,
+        bestseller: false,
         frame: '',
         size: ''
     });
@@ -140,6 +141,7 @@ export default function ProductCardText() {
             price: product.price,
             type: product.type,
             status: product.status === 'Y',
+            bestseller: product.bestseller === 'Y',
             frame: product.frame || '',
             size: product.size || ''
         });
@@ -169,6 +171,7 @@ export default function ProductCardText() {
             price: '',
             type: '',
             status: false,
+            bestseller: false,
             frame: '',
             size: ''
         });
@@ -223,7 +226,8 @@ export default function ProductCardText() {
             formData.append('frame', newProduct.frame); // Include frame in the form data
             formData.append('size', newProduct.size); // Include size in the form data
             formData.append('status', newProduct.status ? 'Y' : 'N');
-            
+            formData.append('bestseller', newProduct.bestseller ? 'Y' : 'N');
+
             // If the selected offer is empty, we will treat it as a removal of the offer tag
             if (selectedOffer) {
                 formData.append('offer_tag', selectedOffer);
@@ -387,6 +391,18 @@ export default function ProductCardText() {
                                     checked={newProduct.status}
                                     onChange={handleFieldChange}
                                 /> Active
+                            </label>
+                        </div>
+
+                        {/* Bestseller checkbox */}
+                        <div className={styles.dialogInput}>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="bestseller"
+                                    checked={newProduct.bestseller} // Bestseller checkbox state
+                                    onChange={handleFieldChange}
+                                /> Bestseller
                             </label>
                         </div>
 
