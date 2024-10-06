@@ -1,5 +1,6 @@
 "use client";
 
+import MembershipSection from '../app/components/MembershipSection'; // Import the new component
 import BookAppointmentButton from './components/BookAppointmentButton'; // Import the Book Appointment button
 import CustomerReviews from './components/CustomerReviews'; // Import the component
 import Footer from './components/Footer'; // Import the Footer component
@@ -29,6 +30,8 @@ export default function Home() {
 
       {/* Include the Customer Reviews component */}
       <CustomerReviews />
+
+      <MembershipSection /> {/* Add the membership section at the end */}
 
       {/* Include the Footer component */}
       <Footer />

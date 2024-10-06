@@ -11,10 +11,7 @@
     padding: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin: 0 auto; /* Center horizontally */
-    position: absolute; /* Set position to absolute */
-    bottom: -150px; /* Position above the footer, adjust as needed */
-    left: 50%; /* Move to the center of the screen */
-    transform: translateX(-50%); /* Center horizontally by translating left */
+    position: relative; /* Set position to absolute */
     z-index: 1; /* Ensure it is above other elements */
 }
 
