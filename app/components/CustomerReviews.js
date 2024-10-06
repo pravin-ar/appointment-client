@@ -47,7 +47,6 @@ const CustomerReviews = () => {
                 padding: { xs: '50px 0', md: '100px 0' },
                 textAlign: 'center',
                 position: 'relative',
-                marginBottom: '200px',
                 overflow: 'visible', // Ensure overflow is visible
             }}
         >

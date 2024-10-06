@@ -48,7 +48,7 @@ async function uploadFileToS3(file, fileName) {
     }
 }
 
-// GET method to fetch all service cards with their image URLs, icons, status, and meta data
+// GET method to fetch all service cards with their image URLs, icons, status, offer_tag, and meta data
 export async function GET() {
     const connection = await createConnection();
     try {
@@ -61,6 +61,7 @@ export async function GET() {
                 s.description, 
                 s.create_at, 
                 s.update_at, 
+                s.offer_tag, /* Include offer_tag ID */
                 i.path AS image_url,
                 ic.path AS icon_url,
                 s.status,
@@ -70,7 +71,8 @@ export async function GET() {
                     FROM kr_dev.meta_data m
                     WHERE m.category_id = s.id
                     AND m.category = 'service_meta_data'
-                ) AS meta_data
+                ) AS meta_data,
+                od.info AS offer_info /* Include offer_info */
             FROM 
                 kr_dev.services s 
             LEFT JOIN 
@@ -91,6 +93,12 @@ export async function GET() {
                 s.id = t.category_id 
             AND
                 t.category = 'service'
+            LEFT JOIN
+                kr_dev.text_data od
+            ON
+                s.offer_tag = od.id
+            AND
+                od.category = 'offer-tags'
         `);
 
         console.log("Service data fetched:", results);
@@ -110,7 +118,7 @@ export async function GET() {
     }
 }
 
-// POST method to add a new service card and store image URL, icon URL, status, info, and meta data (meta tags)
+// POST method to add a new service card and store image URL, icon URL, status, info, offer_tag, and meta data (meta tags)
 export async function POST(req) {
     const connection = await createConnection();
     try {
@@ -129,7 +137,10 @@ export async function POST(req) {
         const metaDescription = formData.get("meta_description");
         const metaKeywords = formData.get("meta_keywords");
 
-        console.log("Parsed formData:", { name, description, status, metaTitle, metaDescription, metaKeywords });
+        // Offer tag
+        const offerTag = formData.get("offer_tag"); // Get offer tag
+
+        console.log("Parsed formData:", { name, description, status, metaTitle, metaDescription, metaKeywords, offerTag });
 
         if (!name || !description || !file) {
             return new Response(JSON.stringify({ error: 'Name, Description, and Image file are required' }), {
@@ -142,8 +153,8 @@ export async function POST(req) {
 
         // Insert service details into services table
         const [serviceResult] = await connection.execute(
-            'INSERT INTO kr_dev.services (name, description, status, create_at) VALUES (?, ?, ?, ?)',
-            [name, description, status, createAt]
+            'INSERT INTO kr_dev.services (name, description, status, offer_tag, create_at) VALUES (?, ?, ?, ?, ?)',
+            [name, description, status, offerTag || null, createAt]
         );
 
         const serviceId = serviceResult.insertId;
@@ -197,21 +208,21 @@ export async function POST(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service, image, icon, and meta data added successfully', serviceId }), {
+        return new Response(JSON.stringify({ message: 'Service, image, icon, offer_tag, and meta data added successfully', serviceId }), {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
         console.error('Error adding service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to add service, image, icon, and meta data' }), {
+        return new Response(JSON.stringify({ error: 'Failed to add service, image, icon, offer_tag, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 }
 
-// PUT method to update an existing service card, its image URL, icon URL, status, info, and meta data (meta tags)
+// PUT method to update an existing service card, its image URL, icon URL, status, info, offer_tag, and meta data (meta tags)
 export async function PUT(req) {
     const connection = await createConnection();
     try {
@@ -231,7 +242,10 @@ export async function PUT(req) {
         const metaDescription = formData.get("meta_description");
         const metaKeywords = formData.get("meta_keywords");
 
-        console.log("Parsed formData for update:", { id, name, description, status, metaTitle, metaDescription, metaKeywords });
+        // Offer tag
+        const offerTag = formData.get("offer_tag"); // Get offer tag
+
+        console.log("Parsed formData for update:", { id, name, description, status, metaTitle, metaDescription, metaKeywords, offerTag });
 
         if (!id || !name || !description) {
             return new Response(JSON.stringify({ error: 'ID, Name, and Description are required' }), {
@@ -244,8 +258,8 @@ export async function PUT(req) {
 
         // Update service details
         const [serviceUpdateResult] = await connection.execute(
-            'UPDATE kr_dev.services SET name = ?, description = ?, status = ?, update_at = ? WHERE id = ?',
-            [name, description, status, updateAt, id]
+            'UPDATE kr_dev.services SET name = ?, description = ?, status = ?, offer_tag = ?, update_at = ? WHERE id = ?',
+            [name, description, status, offerTag || null, updateAt, id]
         );
 
         if (serviceUpdateResult.affectedRows === 0) {
@@ -260,10 +274,6 @@ export async function PUT(req) {
             'SELECT path FROM kr_dev.images WHERE category = ? AND category_id = ?',
             ["service", id]
         );
-
-        if (existingImage.length > 0) {
-            imageUrl = existingImage[0].path;
-        }
 
         // Upload new image if file is provided
         if (file) {
@@ -347,14 +357,14 @@ export async function PUT(req) {
 
         await connection.end();
 
-        return new Response(JSON.stringify({ message: 'Service, image, icon, and meta data updated successfully', imageUrl }), {
+        return new Response(JSON.stringify({ message: 'Service, image, icon, offer_tag, and meta data updated successfully', imageUrl }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
         console.error('Error updating service data:', error);
         await connection.end();
-        return new Response(JSON.stringify({ error: 'Failed to update service, image, icon, and meta data' }), {
+        return new Response(JSON.stringify({ error: 'Failed to update service, image, icon, offer_tag, and meta data' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });

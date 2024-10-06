@@ -11,6 +11,8 @@ export default function ProductCategoryPage() {
     const [newFrame, setNewFrame] = useState(''); // State for new frame
     const [newSize, setNewSize] = useState(''); // State for new size
     const [newOffer, setNewOffer] = useState(''); // State for new offer tag
+    const [newOfferImage, setNewOfferImage] = useState(null); // State for new offer image file
+    const [newOfferImageUrl, setNewOfferImageUrl] = useState(''); // State for new offer image preview
     const [showDialog, setShowDialog] = useState(false); // State for showing/hiding dialog
     const [dialogType, setDialogType] = useState(''); // To differentiate between frame, size, and offer dialog
     const [errorMessage, setErrorMessage] = useState(''); // State for displaying error messages
@@ -48,11 +50,14 @@ export default function ProductCategoryPage() {
         try {
             const response = await fetch('/api/tags?category=offer-tags');
             const data = await response.json();
+
+            // Directly set offers since image_url is included
             setOffers(data);
         } catch (error) {
             console.error('Error fetching offers:', error);
         }
     };
+
 
     // Handle opening dialog for adding a new frame
     const handleAddFrame = () => {
@@ -96,6 +101,8 @@ export default function ProductCategoryPage() {
         setDialogType('offer');
         setCurrentOffer(null);
         setNewOffer('');
+        setNewOfferImage(null);
+        setNewOfferImageUrl('');
         setErrorMessage('');
     };
 
@@ -104,8 +111,18 @@ export default function ProductCategoryPage() {
         setShowDialog(true);
         setDialogType('offer');
         setCurrentOffer(offer);
-        setNewOffer(offer.info); // Pre-fill the offer info
+        setNewOffer(offer.name); // Pre-fill the offer name
+        setNewOfferImageUrl(offer.image_url || '');
         setErrorMessage('');
+    };
+
+    // Handle image file change for offers
+    const handleOfferImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setNewOfferImage(file); // Store the image file
+            setNewOfferImageUrl(URL.createObjectURL(file)); // Preview the uploaded image
+        }
     };
 
     // Save or update frame
@@ -198,7 +215,7 @@ export default function ProductCategoryPage() {
         try {
             setErrorMessage('');
             const formData = new FormData();
-            formData.append('info', newOffer); // Append offer info
+            formData.append('name', newOffer); // Append offer name
             formData.append('category', 'offer-tags'); // Category for offers
 
             let url = '/api/tags';
@@ -208,6 +225,11 @@ export default function ProductCategoryPage() {
                 // If editing, use PUT method
                 url = `/api/tags?id=${currentOffer.id}`;
                 method = 'PUT';
+            }
+
+            // Append image if available
+            if (newOfferImage) {
+                formData.append('image', newOfferImage);
             }
 
             const response = await fetch(url, {
@@ -221,6 +243,8 @@ export default function ProductCategoryPage() {
 
             setShowDialog(false);
             setNewOffer(''); // Reset offer input
+            setNewOfferImage(null);
+            setNewOfferImageUrl('');
             fetchOffers(); // Refresh the data after saving
         } catch (error) {
             console.error('Error saving offer tag:', error);
@@ -256,7 +280,7 @@ export default function ProductCategoryPage() {
                     </button>
                 </div>
 
-                {/* Right side - Manage Sizes */}
+                {/* Middle - Manage Sizes */}
                 <div className="sizes-section">
                     <h2>Sizes</h2>
                     <div className="card-container">
@@ -280,7 +304,7 @@ export default function ProductCategoryPage() {
                     </button>
                 </div>
 
-                {/* Offer Section - Manage Offer Tags */}
+                {/* Right side - Manage Offer Tags */}
                 <div className="offers-section">
                     <h2>Offer Tags</h2>
                     <div className="card-container">
@@ -288,7 +312,10 @@ export default function ProductCategoryPage() {
                             offers.map((offer) => (
                                 <article key={offer.id} className="card">
                                     <header className="card-header">
-                                        <h2 className="card-title">{offer.info}</h2>
+                                        <h2 className="card-title">{offer.name}</h2>
+                                        {offer.image_url && (
+                                            <img src={offer.image_url} alt={offer.name} className="card-image" style={{ width: '100px', height: '100px', objectFit: 'cover' }} />
+                                        )}
                                     </header>
                                     <footer className="card-footer">
                                         <button className="btn edit-btn" onClick={() => handleEditOffer(offer)}>Edit</button>
@@ -309,17 +336,51 @@ export default function ProductCategoryPage() {
             {showDialog && (
                 <div className="dialog-overlay">
                     <div className="dialog">
-                        <h2>{dialogType === 'frame' ? (currentFrame ? 'Edit Frame' : 'Add New Frame') : (dialogType === 'size' ? (currentSize ? 'Edit Size' : 'Add New Size') : (currentOffer ? 'Edit Offer Tag' : 'Add New Offer Tag'))}</h2>
+                        <h2>
+                            {dialogType === 'frame'
+                                ? currentFrame ? 'Edit Frame' : 'Add New Frame'
+                                : dialogType === 'size'
+                                    ? currentSize ? 'Edit Size' : 'Add New Size'
+                                    : currentOffer ? 'Edit Offer Tag' : 'Add New Offer Tag'}
+                        </h2>
                         <input
                             type="text"
                             className="dialog-input"
-                            value={dialogType === 'frame' ? newFrame : (dialogType === 'size' ? newSize : newOffer)}
-                            placeholder={`Enter ${dialogType === 'frame' ? 'Frame' : (dialogType === 'size' ? 'Size' : 'Offer Tag')}`}
-                            onChange={(e) => dialogType === 'frame' ? setNewFrame(e.target.value) : (dialogType === 'size' ? setNewSize(e.target.value) : setNewOffer(e.target.value))}
+                            value={dialogType === 'frame' ? newFrame : dialogType === 'size' ? newSize : newOffer}
+                            placeholder={`Enter ${dialogType === 'frame' ? 'Frame' : dialogType === 'size' ? 'Size' : 'Offer Tag'}`}
+                            onChange={(e) => {
+                                if (dialogType === 'frame') {
+                                    setNewFrame(e.target.value);
+                                } else if (dialogType === 'size') {
+                                    setNewSize(e.target.value);
+                                } else {
+                                    setNewOffer(e.target.value);
+                                }
+                            }}
                         />
+                        {/* Offer Image Upload */}
+                        {dialogType === 'offer' && (
+                            <div className="dialog-input">
+                                {newOfferImageUrl && (
+                                    <img src={newOfferImageUrl} alt="Offer" style={{ width: '100px', marginBottom: '10px', objectFit: 'cover' }} />
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleOfferImageChange}
+                                />
+                            </div>
+                        )}
                         {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
                         <div className="dialog-footer">
-                            <button className="btn save-btn" onClick={dialogType === 'frame' ? handleSaveFrame : (dialogType === 'size' ? handleSaveSize : handleSaveOffer)}>Save</button>
+                            <button
+                                className="btn save-btn"
+                                onClick={dialogType === 'frame' ? handleSaveFrame
+                                    : dialogType === 'size' ? handleSaveSize
+                                        : handleSaveOffer}
+                            >
+                                Save
+                            </button>
                             <button className="btn cancel-btn" onClick={() => setShowDialog(false)}>Cancel</button>
                         </div>
                     </div>

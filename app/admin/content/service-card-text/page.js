@@ -21,6 +21,10 @@ export default function ServiceCardText() {
     const [metaDescription, setMetaDescription] = useState(''); // Meta description for SEO
     const [metaKeywords, setMetaKeywords] = useState(''); // Meta keywords for SEO
 
+    // New states for offer tags
+    const [offers, setOffers] = useState([]); // Offers data
+    const [selectedOffer, setSelectedOffer] = useState(''); // Selected offer tag
+
     // Quill editor modules for toolbar configuration
     const modules = {
         toolbar: [
@@ -38,6 +42,7 @@ export default function ServiceCardText() {
 
     useEffect(() => {
         fetchServices();
+        fetchOffers(); // Fetch offer tags
     }, []);
 
     // Fetch services from the API
@@ -51,6 +56,19 @@ export default function ServiceCardText() {
         }
     };
 
+    // Fetch offer tags from the API
+    const fetchOffers = async () => {
+        try {
+            const response = await fetch('/api/tags?category=offer-tags');
+            const data = await response.json();
+            console.log('Offers data:', data); // Add this line
+            setOffers(data);
+        } catch (error) {
+            console.error('Error fetching offers:', error);
+        }
+    };
+
+
     // Handle editing a service
     const handleEdit = (service) => {
         setEditingService(service); // Set the current service to edit
@@ -63,9 +81,14 @@ export default function ServiceCardText() {
         setMetaTitle(service.meta_data?.title || ''); // Set meta title
         setMetaDescription(service.meta_data?.description || ''); // Set meta description
         setMetaKeywords(service.meta_data?.keywords || ''); // Set meta keywords
+
+        // Set selected offer tag
+        setSelectedOffer(service.offer_tag || '');
+
         setShowDialog(true); // Open the dialog
     };
 
+    // Handle saving the service
     // Handle saving the service
     const handleSave = async () => {
         try {
@@ -77,10 +100,16 @@ export default function ServiceCardText() {
             formData.append('description', description);
             formData.append('status', status);
             formData.append('info', info); // Send rich text (HTML) content
+
+            // Append offer tag as ID
+            formData.append('offer_tag', selectedOffer || ''); // Use the selected offer tag ID
+
+            // Append meta data fields
             formData.append('meta_title', metaTitle); // Meta title
             formData.append('meta_description', metaDescription); // Meta description
             formData.append('meta_keywords', metaKeywords); // Meta keywords
 
+            // Handle image uploads
             if (imageFile) {
                 formData.append('file', imageFile);
             }
@@ -104,6 +133,7 @@ export default function ServiceCardText() {
             console.error('Error saving service:', error);
         }
     };
+
 
     // Handle image file change
     const handleImageChange = (e) => {
@@ -136,6 +166,10 @@ export default function ServiceCardText() {
                             <p className="card-description">{service.description}</p>
                             <p className="card-info">Info: <div dangerouslySetInnerHTML={{ __html: service.info || 'N/A' }} /></p>
                             <p className="card-status">Status: {service.status || 'Y'}</p>
+                            {/* Display Offer Tag */}
+                            {service.offer_tag && (
+                                <p className="card-offer">Offer: {offers.find(offer => offer.id === service.offer_tag)?.info || 'Unknown Offer'}</p>
+                            )}
                             <footer className="card-footer">
                                 <button className="btn edit-btn" onClick={() => handleEdit(service)}>Edit</button>
                             </footer>
@@ -147,18 +181,19 @@ export default function ServiceCardText() {
             </div>
 
             <div className="add-card-container">
-                <button className="btn add-btn" onClick={() => { 
-                    setShowDialog(true); 
-                    setServiceName(''); 
-                    setDescription(''); 
-                    setStatus('Y'); 
-                    setInfo(''); 
-                    setMetaTitle(''); 
-                    setMetaDescription(''); 
-                    setMetaKeywords(''); 
-                    setImageFile(null); 
+                <button className="btn add-btn" onClick={() => {
+                    setShowDialog(true);
+                    setServiceName('');
+                    setDescription('');
+                    setStatus('Y');
+                    setInfo('');
+                    setMetaTitle('');
+                    setMetaDescription('');
+                    setMetaKeywords('');
+                    setImageFile(null);
                     setIconFile(null);
                     setIconUrl('');
+                    setSelectedOffer(''); // Reset selected offer
                 }}>
                     Add Service
                 </button>
@@ -192,6 +227,20 @@ export default function ServiceCardText() {
                             <option value="Y">Active</option>
                             <option value="N">Inactive</option>
                         </select>
+
+                        {/* Dropdown for Offers */}
+                        <select
+                            className={styles.dialogInput}
+                            name="offer"
+                            value={selectedOffer}
+                            onChange={(e) => setSelectedOffer(e.target.value)}
+                        >
+                            <option value="">No Offer</option> {/* Option to remove offer tag */}
+                            {offers.map((offer) => (
+                                <option key={offer.id} value={offer.id}>{offer.name}</option>
+                            ))}
+                        </select>
+
                         {/* Meta Data Section */}
                         <div className={styles.dialogInput}>
                             <h4>Meta Title</h4>

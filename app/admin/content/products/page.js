@@ -227,13 +227,9 @@ export default function ProductCardText() {
             formData.append('size', newProduct.size); // Include size in the form data
             formData.append('status', newProduct.status ? 'Y' : 'N');
             formData.append('bestseller', newProduct.bestseller ? 'Y' : 'N');
-
-            // If the selected offer is empty, we will treat it as a removal of the offer tag
-            if (selectedOffer) {
-                formData.append('offer_tag', selectedOffer);
-            } else {
-                formData.append('offer_tag', ''); // Clear offer tag
-            }
+    
+            // If the selected offer is empty, treat it as a removal of the offer tag
+            formData.append('offer_tag', selectedOffer || '');
     
             // Append meta data fields
             formData.append('meta_title', metaTitle);
@@ -379,7 +375,7 @@ export default function ProductCardText() {
                         >
                             <option value="">No Offer</option> {/* Option to remove offer tag */}
                             {offers.map((offer) => (
-                                <option key={offer.id} value={offer.info}>{offer.info}</option>
+                                <option key={offer.id} value={offer.id}>{offer.name}</option>
                             ))}
                         </select>
 

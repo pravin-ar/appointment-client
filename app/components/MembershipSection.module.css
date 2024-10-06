@@ -1,4 +1,8 @@
 /* Membership Section Styles */
+.membershipPage{
+    width: 100%;
+    background-color: #ffffff;
+}
 .membershipSection {
     width: 1119px;
     height: 349px;
