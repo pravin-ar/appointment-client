@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import { useEffect, useState } from 'react';
 import Footer from '../../components/Footer'; // Import the Footer component
-import NavbarProducts from '../../components/NavbarProducts'; // Import Navbar component
+import NavbarOffers from '../../components/NavbarOffers'; // Import Navbar component
 import styles from './OffersPage.module.css'; // Import styles
 
 export default function Page() {
@@ -30,7 +30,7 @@ export default function Page() {
 
     return (
         <>
-            <NavbarProducts /> {/* Include the Navbar */}
+            <NavbarOffers /> {/* Include the Navbar */}
 
             {/* Static Banner Image */}
             <div className={styles.offerBanner}>

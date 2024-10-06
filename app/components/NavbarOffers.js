@@ -1,4 +1,4 @@
-// NavbarBookNow.jsx
+// NavbarOffers.jsx
 'use client'; // Ensure this is a Client Component
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -32,7 +32,7 @@ const StyledMenu = styled(Menu)(({ theme }) => ({
     },
 }));
 
-const NavbarBookNow = () => {
+const NavbarOffers = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const isTabletOrMobile = useMediaQuery('(max-width:1200px)');
     const isMobile = useMediaQuery('(max-width:600px)');
@@ -206,7 +206,7 @@ const NavbarBookNow = () => {
                                     <MenuItem
                                         onClick={handleClose}
                                         sx={{
-                                            ...(item.text === 'Book appointment' && {
+                                            ...(item.text === 'Offers' && {
                                                 backgroundColor: '#EC008B',
                                                 color: '#fff',
                                             }),
@@ -225,7 +225,7 @@ const NavbarBookNow = () => {
                                                     sx={{
                                                         fontSize: '14px',
                                                         fontWeight: 700,
-                                                        color: item.text === 'Book appointment' ? '#fff' : '#383838',
+                                                        color: item.text === 'Offers' ? '#fff' : '#383838',
                                                         textDecoration: 'none',
                                                         '&:hover': {
                                                             color: '#0066cc',
@@ -235,7 +235,7 @@ const NavbarBookNow = () => {
                                                     {item.text}
                                                 </MuiLink>
                                             </NextLink>
-                                            {item.text === 'Book appointment' && (
+                                            {item.text === 'Offers' && (
                                                 <Image
                                                     src="/assets/images/glass.png"
                                                     alt="Glasses Icon"
@@ -306,7 +306,7 @@ const NavbarBookNow = () => {
                                             },
                                         }}
                                     >
-                                        {item.text === 'Book appointment' ? (
+                                        {item.text === 'Offers' ? (
                                             <Box
                                                 sx={{
                                                     display: 'flex',
@@ -346,4 +346,4 @@ const NavbarBookNow = () => {
     );
 };
 
-export default NavbarBookNow;
+export default NavbarOffers;

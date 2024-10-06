@@ -1,25 +1,37 @@
+// NavbarHome.jsx
 import MenuIcon from '@mui/icons-material/Menu';
-import { AppBar, Divider, IconButton, Menu, MenuItem, Toolbar, Typography, useMediaQuery } from '@mui/material';
+import {
+    AppBar,
+    Box,
+    Divider,
+    IconButton,
+    Menu,
+    MenuItem,
+    Link as MuiLink,
+    Toolbar,
+    Typography,
+    useMediaQuery,
+} from '@mui/material';
 import { styled } from '@mui/system';
 import Image from 'next/image';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { useState } from 'react';
-import styles from './Navbar.module.css';
 
-const StyledMenu = styled(Menu)({
+const StyledMenu = styled(Menu)(({ theme }) => ({
     '& .MuiPaper-root': {
         borderRadius: '20px',
-        border: '2px solid #EC008B', // Border to match the pink color
+        border: '2px solid #EC008B',
         padding: '10px',
     },
     '& .MuiMenuItem-root': {
         padding: '20px',
     },
-});
+}));
 
 const NavbarHome = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const isTabletOrMobile = useMediaQuery('(max-width:1200px)');
+    const isMobile = useMediaQuery('(max-width:600px)');
 
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
@@ -38,46 +50,139 @@ const NavbarHome = () => {
     ];
 
     return (
-        <AppBar position="static" style={{ backgroundColor: '#fff', boxShadow: 'none' }}>
-            <Toolbar className={styles.toolbar}>
+        <AppBar position="static" sx={{ backgroundColor: '#fff', boxShadow: 'none' }}>
+            <Toolbar
+                sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: { xs: '20px', sm: '30px', md: '40px 20px' },
+                    height: { xs: '80px', sm: '80px' },
+                    position: 'relative',
+                }}
+            >
                 {/* Logo Section */}
-                <div className={styles.navbarLeft}>
-                    <Image
-                        src="/assets/images/keena_logo.png"
-                        alt="Keena Rakkado Logo"
-                        width={277}
-                        height={78}
-                        className={styles.logo}
-                    />
-                </div>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginLeft: { xs: '20px', sm: '40px', md: '40px' },
+                    }}
+                >
+                    <Box
+                        sx={{
+                            width: {
+                                xs: '102px', // Mobile
+                                sm: '196px', // Tablet
+                                md: '365px', // Desktop
+                            },
+                            height: {
+                                xs: '27px', // Mobile
+                                sm: '52px', // Tablet
+                                md: '96px', // Desktop
+                            },
+                        }}
+                    >
+                        <Image
+                            src="/assets/images/keena_logo.png"
+                            alt="Keena Rakkado Logo"
+                            width={365}
+                            height={96}
+                            style={{ width: '100%', height: 'auto' }}
+                        />
+                    </Box>
+                </Box>
 
-                {/* Links for Desktop */}
-                {!isTabletOrMobile ? (
-                    <div className={styles.navbarCenter}>
-                        <Link href="/" className={styles.navLink}>
+                {/* Menu Button for Tablet and Mobile */}
+                {isTabletOrMobile && (
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        aria-label="menu"
+                        onClick={handleMenu}
+                        sx={{
+                            position: 'absolute',
+                            right: { xs: '20px', sm: '20px' },
+                            width: {
+                                xs: '25.45px', // Mobile width
+                                sm: '30.55px', // Tablet width
+                            },
+                            height: {
+                                xs: '20px', // Mobile height
+                                sm: '24px', // Tablet height
+                            },
+                        }}
+                    >
+                        <MenuIcon
+                            sx={{
+                                color: '#383838',
+                                width: {
+                                    xs: '25.45px', // Mobile width
+                                    sm: '30.55px', // Tablet width
+                                },
+                                height: {
+                                    xs: '20px', // Mobile height
+                                    sm: '24px', // Tablet height
+                                },
+                            }}
+                        />
+                    </IconButton>
+                )}
+
+                {/* Navigation Links for Desktop */}
+                {!isTabletOrMobile && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '60px',
+                            marginRight: { md: '40px' },
+                        }}
+                    >
+                        <MuiLink
+                            component={NextLink}
+                            href="/"
+                            sx={{
+                                paddingRight: 0,
+                                fontSize: '24px',
+                                fontWeight: 700,
+                                color: '#383838',
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    color: '#0066cc',
+                                },
+                            }}
+                        >
                             <Image
                                 src="/assets/images/glass.png"
                                 alt="Glasses Icon"
                                 width={60}
                                 height={24}
                             />
-                        </Link>
+                        </MuiLink>
                         {menuItems.map((item) => (
-                            <Link key={item.text} href={item.link} className={styles.navLink}>
+                            <MuiLink
+                                key={item.text}
+                                component={NextLink}
+                                href={item.link}
+                                sx={{
+                                    paddingRight: 0,
+                                    fontSize: '24px',
+                                    fontWeight: 700,
+                                    color: '#383838',
+                                    textDecoration: 'none',
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                        color: '#0066cc',
+                                    },
+                                }}
+                            >
                                 {item.text}
-                            </Link>
+                            </MuiLink>
                         ))}
-                    </div>
-                ) : (
-                    <IconButton
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        onClick={handleMenu}
-                        className={styles.menuButton}
-                    >
-                        <MenuIcon style={{ color: '#383838' }} />
-                    </IconButton>
+                    </Box>
                 )}
 
                 {/* Mobile/Tablet Menu */}
@@ -96,30 +201,62 @@ const NavbarHome = () => {
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                 >
-                    <Typography
-                        variant="h6"
-                        component="div"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    {/* Menu Header with Glass Icon */}
+                    <MenuItem
+                        sx={{
+                            backgroundColor: '#EC008B', // Pink background
+                            color: '#fff', // White text
+                            justifyContent: 'center',
+                        }}
                     >
-                        Menu
-                        <Image
-                            src="/assets/images/glass.png"
-                            alt="Glasses Icon"
-                            width={30}
-                            height={30}
-                        />
-                    </Typography>
-                    <Divider style={{ border: '1px solid #EC008B' }} />
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: { xs: '14px', sm: '16px' },
+                                    marginRight: '10px',
+                                }}
+                            >
+                                Menu
+                            </Typography>
+                            <Image
+                                src="/assets/images/glass.png"
+                                alt="Glasses Icon"
+                                width={40}
+                                height={16}
+                            />
+                        </Box>
+                    </MenuItem>
+                    <Divider sx={{ border: '1px solid #EC008B' }} />
 
                     {menuItems.map((item, index) => (
                         <div key={item.text}>
                             <MenuItem onClick={handleClose}>
-                                <Link href={item.link} className={styles.navLink}>
+                                <MuiLink
+                                    component={NextLink}
+                                    href={item.link}
+                                    sx={{
+                                        fontSize: '14px',
+                                        fontWeight: 700,
+                                        color: '#383838',
+                                        textDecoration: 'none',
+                                        '&:hover': {
+                                            color: '#0066cc',
+                                        },
+                                    }}
+                                >
                                     {item.text}
-                                </Link>
+                                </MuiLink>
                             </MenuItem>
                             {index < menuItems.length - 1 && (
-                                <Divider style={{ border: '1px solid #EC008B' }} />
+                                <Divider sx={{ border: '1px solid #EC008B' }} />
                             )}
                         </div>
                     ))}

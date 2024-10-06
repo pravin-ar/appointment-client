@@ -1,27 +1,27 @@
-// app/components/NavbarService.js
-
+// NavbarService.jsx
 'use client'; // Ensure this is a Client Component
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
     AppBar,
+    Box,
     Divider,
     IconButton,
     Menu,
     MenuItem,
+    Link as MuiLink,
     Toolbar,
     Typography,
     useMediaQuery,
 } from '@mui/material';
 import { styled } from '@mui/system';
 import Image from 'next/image';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation'; // Correct import for Next.js 13+
 import { useState } from 'react';
-import styles from './NavbarOthers.module.css'; // Using the existing CSS module
 
-const StyledMenu = styled(Menu)({
+const StyledMenu = styled(Menu)(({ theme }) => ({
     '& .MuiPaper-root': {
         borderRadius: '20px',
         border: '2px solid #EC008B', // Pink border
@@ -30,11 +30,12 @@ const StyledMenu = styled(Menu)({
     '& .MuiMenuItem-root': {
         padding: '20px',
     },
-});
+}));
 
 const NavbarService = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const isTabletOrMobile = useMediaQuery('(max-width:1200px)');
+    const isMobile = useMediaQuery('(max-width:600px)');
     const router = useRouter();
 
     const handleMenu = (event) => {
@@ -62,48 +63,109 @@ const NavbarService = () => {
     ];
 
     return (
-        <AppBar position="static" className={styles.appBar}>
-            <Toolbar className={styles.toolbar}>
+        <AppBar position="static" sx={{ backgroundColor: '#fff', boxShadow: 'none' }}>
+            <Toolbar
+                sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    position: 'relative',
+                    padding: { xs: '20px', sm: '30px', md: '0 40px' },
+                    height: { xs: '80px', sm: '80px' },
+                    boxSizing: 'border-box',
+                }}
+            >
                 {isTabletOrMobile ? (
                     <>
                         {/* Back Button */}
-                        <div className={styles.navbarLeft}>
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                left: '20px',
+                            }}
+                        >
                             <IconButton
                                 edge="start"
                                 color="inherit"
                                 aria-label="back"
                                 onClick={handleBack}
-                                className={styles.backButton}
+                                sx={{
+                                    padding: '8px',
+                                }}
                             >
-                                <ArrowBackIcon style={{ color: '#383838' }} />
+                                <ArrowBackIcon sx={{ color: '#383838' }} />
                             </IconButton>
-                        </div>
+                        </Box>
 
                         {/* Centered Logo */}
-                        <div className={styles.navbarCenter}>
-                            <Link href="/">
-                                <Image
-                                    src="/assets/images/keena_logo.png"
-                                    alt="Keena Rakkado Logo"
-                                    width={196}
-                                    height={52}
-                                    className={styles.logo}
-                                />
-                            </Link>
-                        </div>
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <NextLink href="/" passHref>
+                                <MuiLink>
+                                    <Box
+                                        sx={{
+                                            width: {
+                                                xs: '102px', // Mobile
+                                                sm: '196px', // Tablet
+                                            },
+                                            height: {
+                                                xs: '27px', // Mobile
+                                                sm: '52px', // Tablet
+                                            },
+                                        }}
+                                    >
+                                        <Image
+                                            src="/assets/images/keena_logo.png"
+                                            alt="Keena Rakkado Logo"
+                                            width={isMobile ? 102 : 196}
+                                            height={isMobile ? 27 : 52}
+                                            style={{ width: '100%', height: 'auto' }}
+                                        />
+                                    </Box>
+                                </MuiLink>
+                            </NextLink>
+                        </Box>
 
                         {/* Menu Button */}
-                        <div className={styles.navbarRight}>
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                right: '20px',
+                                display: 'flex',
+                            }}
+                        >
                             <IconButton
                                 edge="end"
                                 color="inherit"
                                 aria-label="menu"
                                 onClick={handleMenu}
-                                className={styles.menuButton}
+                                sx={{
+                                    padding: '8px',
+                                }}
                             >
-                                <MenuIcon style={{ color: '#383838' }} />
+                                <MenuIcon
+                                    sx={{
+                                        color: '#383838',
+                                        width: {
+                                            xs: '25.45px', // Mobile
+                                            sm: '30.55px', // Tablet
+                                        },
+                                        height: {
+                                            xs: '20px', // Mobile
+                                            sm: '24px', // Tablet
+                                        },
+                                    }}
+                                />
                             </IconButton>
-                        </div>
+                        </Box>
 
                         {/* Mobile/Tablet Menu */}
                         <StyledMenu
@@ -121,43 +183,71 @@ const NavbarService = () => {
                             open={Boolean(anchorEl)}
                             onClose={handleClose}
                         >
-                            {/* Optional Menu Header */}
+                            {/* Menu Header */}
                             <Typography
                                 variant="h6"
                                 component="div"
-                                style={{
+                                sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'space-between',
+                                    justifyContent: 'center',
+                                    fontWeight: 700,
+                                    fontSize: '14px',
+                                    padding: '10px 0',
+                                    color: '#383838',
                                 }}
                             >
                                 Menu
                             </Typography>
-                            <Divider style={{ border: '1px solid #EC008B' }} />
+                            <Divider sx={{ border: '1px solid #EC008B' }} />
 
                             {menuItems.map((item, index) => (
                                 <div key={item.text}>
                                     <MenuItem
                                         onClick={handleClose}
-                                        className={item.text === 'Service' ? styles.activeMenuItem : ''}
+                                        sx={{
+                                            ...(item.text === 'Service' && {
+                                                backgroundColor: '#EC008B',
+                                                color: '#fff',
+                                            }),
+                                        }}
                                     >
-                                        <div className={styles.menuItemContent}>
-                                            <Link href={item.link} className={styles.menuText}>
-                                                {item.text}
-                                            </Link>
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                flexDirection: 'row',
+                                                textAlign: 'left',
+                                            }}
+                                        >
+                                            <NextLink href={item.link} passHref>
+                                                <MuiLink
+                                                    sx={{
+                                                        fontSize: '14px',
+                                                        fontWeight: 700,
+                                                        color: item.text === 'Service' ? '#fff' : '#383838',
+                                                        textDecoration: 'none',
+                                                        '&:hover': {
+                                                            color: '#0066cc',
+                                                        },
+                                                    }}
+                                                >
+                                                    {item.text}
+                                                </MuiLink>
+                                            </NextLink>
                                             {item.text === 'Service' && (
                                                 <Image
                                                     src="/assets/images/glass.png"
                                                     alt="Glasses Icon"
-                                                    width={40} /* Icon for tablet and mobile */
+                                                    width={40}
                                                     height={16}
-                                                    className={styles.menuIcon}
+                                                    style={{ marginLeft: '10px' }}
                                                 />
                                             )}
-                                        </div>
+                                        </Box>
                                     </MenuItem>
                                     {index < menuItems.length - 1 && (
-                                        <Divider style={{ border: '1px solid #EC008B' }} />
+                                        <Divider sx={{ border: '1px solid #EC008B' }} />
                                     )}
                                 </div>
                             ))}
@@ -167,48 +257,93 @@ const NavbarService = () => {
                     // Desktop View
                     <>
                         {/* Logo Section */}
-                        <div className={styles.navbarLeft}>
-                            <Link href="/">
-                                <Image
-                                    src="/assets/images/keena_logo.png"
-                                    alt="Keena Rakkado Logo"
-                                    width={277}
-                                    height={78}
-                                    className={styles.logo}
-                                />
-                            </Link>
-                        </div>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <NextLink href="/" passHref>
+                                <MuiLink>
+                                    <Box
+                                        sx={{
+                                            width: '277px',
+                                            height: '78px',
+                                        }}
+                                    >
+                                        <Image
+                                            src="/assets/images/keena_logo.png"
+                                            alt="Keena Rakkado Logo"
+                                            width={277}
+                                            height={78}
+                                            style={{ width: '100%', height: 'auto' }}
+                                        />
+                                    </Box>
+                                </MuiLink>
+                            </NextLink>
+                        </Box>
 
                         {/* Navigation Links */}
-                        <div className={styles.navbarCenter}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '60px',
+                            }}
+                        >
                             {menuItems.map((item) => (
-                                <Link key={item.text} href={item.link} className={styles.navLink}>
-                                    {item.text === 'Service' ? (
-                                        <div className={styles.menuItemContent}>
-                                            {/* Glass Icon Above Text */}
-                                            <Image
-                                                src="/assets/images/glass.png"
-                                                alt="Glasses Icon"
-                                                width={40} /* Icon above text */
-                                                height={16}
-                                                className={styles.activeMenuItemIcon}
-                                            />
-                                            <Link href={item.link} className={styles.navLink}>
-                                                {item.text}
-                                            </Link>
-                                        </div>
-                                    ) : (
-                                        item.text
-                                    )}
-                                </Link>
+                                <NextLink key={item.text} href={item.link} passHref>
+                                    <MuiLink
+                                        sx={{
+                                            fontSize: '24px',
+                                            fontWeight: 700,
+                                            color: '#383838',
+                                            textDecoration: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'color 0.3s ease',
+                                            '&:hover': {
+                                                color: '#0066cc',
+                                            },
+                                        }}
+                                    >
+                                        {item.text === 'Service' ? (
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    flexDirection: 'column',
+                                                    textAlign: 'center',
+                                                }}
+                                            >
+                                                <Image
+                                                    src="/assets/images/glass.png"
+                                                    alt="Glasses Icon"
+                                                    width={40}
+                                                    height={16}
+                                                    style={{ marginBottom: '8px' }}
+                                                />
+                                                <Typography
+                                                    sx={{
+                                                        fontSize: '24px',
+                                                        fontWeight: 700,
+                                                        color: '#383838',
+                                                    }}
+                                                >
+                                                    {item.text}
+                                                </Typography>
+                                            </Box>
+                                        ) : (
+                                            item.text
+                                        )}
+                                    </MuiLink>
+                                </NextLink>
                             ))}
-                        </div>
+                        </Box>
                     </>
                 )}
             </Toolbar>
         </AppBar>
     );
-
 };
 
 export default NavbarService;
