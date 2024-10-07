@@ -91,7 +91,7 @@ const ServicesSection = () => {
             sx={{
                 padding: { xs: '50px 16px', sm: '70px 24px', md: '100px 0' },
                 textAlign: 'center',
-                backgroundColor: '#F7F7F7',
+                backgroundColor: '#FFF',
             }}
         >
             <Box

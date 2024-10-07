@@ -138,12 +138,12 @@ const Footer = () => {
                             width: {
                                 xs: '113.96px', // Mobile width
                                 sm: '117.57px', // Tablet width
-                                md: '203px',    // Desktop width
+                                md: '203px', // Desktop width
                             },
                             height: {
-                                xs: '32px',    // Mobile height
+                                xs: '32px', // Mobile height
                                 sm: '33.01px', // Tablet height
-                                md: '57px',    // Desktop height
+                                md: '57px', // Desktop height
                             },
                             marginBottom: '12px',
                             margin: { xs: '0 auto', sm: '0' },
@@ -229,9 +229,8 @@ const Footer = () => {
                     </Typography>
                     <List sx={{ padding: 0, margin: 0 }}>
                         <ListItem sx={{ padding: 0, margin: '12px 0' }}>
-                            <Link href="/user/aboutus" passHref>
+                            <Link href="/user/aboutus">
                                 <Typography
-                                    component="a"
                                     sx={{
                                         fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                         fontWeight: 600,
@@ -248,9 +247,8 @@ const Footer = () => {
                             </Link>
                         </ListItem>
                         <ListItem sx={{ padding: 0, margin: '12px 0' }}>
-                            <Link href="/user/faq" passHref>
+                            <Link href="/user/faq">
                                 <Typography
-                                    component="a"
                                     sx={{
                                         fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                         fontWeight: 600,
@@ -267,9 +265,8 @@ const Footer = () => {
                             </Link>
                         </ListItem>
                         <ListItem sx={{ padding: 0, margin: '12px 0' }}>
-                            <Link href="/user/contact-us" passHref>
+                            <Link href="/user/contact-us">
                                 <Typography
-                                    component="a"
                                     sx={{
                                         fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                         fontWeight: 600,
@@ -286,9 +283,8 @@ const Footer = () => {
                             </Link>
                         </ListItem>
                         <ListItem sx={{ padding: 0, margin: '12px 0' }}>
-                            <Link href="/user/policy" passHref>
+                            <Link href="/user/policy">
                                 <Typography
-                                    component="a"
                                     sx={{
                                         fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                         fontWeight: 600,
@@ -331,9 +327,8 @@ const Footer = () => {
                         <List sx={{ padding: 0, margin: 0 }}>
                             {services.map((service) => (
                                 <ListItem key={service.id} sx={{ padding: 0, margin: '12px 0' }}>
-                                    <Link href={`/user/services/${service.id}`} passHref>
+                                    <Link href={`/user/services/${service.id}`}>
                                         <Typography
-                                            component="a"
                                             sx={{
                                                 fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                                 fontWeight: 600,
@@ -388,9 +383,8 @@ const Footer = () => {
                     <List sx={{ padding: 0, margin: 0 }}>
                         {policies.map((policy) => (
                             <ListItem key={policy.id} sx={{ padding: 0, margin: '12px 0' }}>
-                                <Link href={`/user/policies/${policy.id}`} passHref>
+                                <Link href={`/user/policies/${policy.id}`}>
                                     <Typography
-                                        component="a"
                                         sx={{
                                             fontSize: { xs: '14px', sm: '10px', md: '18px' },
                                             fontWeight: 600,

@@ -182,6 +182,10 @@ export default function BookNow() {
         }
     };
 
+    const handleToggleUserType = (isNew) => {
+        setFormData({ ...formData, isNewUser: isNew });
+    };
+    
     return (
         <>
             <NavbarBookNow />
@@ -255,6 +259,28 @@ export default function BookNow() {
                             required
                         />
                     </div>
+
+                    {/* Is New User Section */}
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Have you been tested with us before?</label>
+                    <div className={styles.userTypeToggle}>
+                        <button
+                            type="button"
+                            className={`${styles.userTypeBtn} ${formData.isNewUser ? styles.active : ''}`}
+                            onClick={() => handleToggleUserType(true)}
+                        >
+                            Yes
+                        </button>
+                        <button
+                            type="button"
+                            className={`${styles.userTypeBtn} ${!formData.isNewUser ? styles.active : ''}`}
+                            onClick={() => handleToggleUserType(false)}
+                        >
+                            No
+                        </button>
+                    </div>
+                </div>
+
 
                     <div className={styles.formGroup}>
                         <label htmlFor="datePicker" className={styles.formLabel}>Appointment Date</label>

@@ -27,36 +27,33 @@
     /* Adjust as necessary */
 }
 
+/* Is New User Toggle Section */
 .userTypeToggle {
     display: flex;
     justify-content: center;
     margin-bottom: 40px;
-    /* Add more space for visual clarity */
-    gap: 20px;
-    /* Space between the buttons */
+    gap: 20px; /* Space between the buttons */
 }
 
 .userTypeBtn {
-    width: 250px;
-    /* Adjusted for better alignment */
+    width: 100px;
     height: 64px;
-    /* Reduced height for better visual alignment */
     padding: 10px 20px;
-    border: none;
+    border: 2px solid #ff007f;
     background-color: #FFFFFF;
     color: #666;
     cursor: pointer;
     border-radius: 24px;
     font-size: 18px;
-    /* Increased font size */
     font-weight: 600;
-    /* Font weight for more emphasis */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .userTypeBtn.active {
     background-color: #ff007f;
     color: #fff;
 }
+
 
 .bookingForm {
     width: 100%;
