@@ -1,12 +1,12 @@
 "use client";
 
-import MembershipSection from '../app/components/MembershipSection'; // Import the new component
-import BookAppointmentButton from './components/BookAppointmentButton'; // Import the Book Appointment button
-import CustomerReviews from './components/CustomerReviews'; // Import the component
-import Footer from './components/Footer'; // Import the Footer component
+import MembershipSection from '../app/components/MembershipSection';
+import CustomerReviews from './components/CustomerReviews';
+import Footer from './components/Footer';
+import HeroSection from './components/HeroSection'; // Import the new component
 import NavbarHome from './components/NavbarHome';
-import ProductsSection from './components/ProductsSection'; // Import the ProductsSection component
-import ServicesSection from './components/ServicesSection'; // Import the ServicesSection component
+import ProductsSection from './components/ProductsSection';
+import ServicesSection from './components/ServicesSection';
 
 export default function Home() {
   return (
@@ -14,13 +14,8 @@ export default function Home() {
       {/* Include the Navbar component */}
       <NavbarHome />
 
-      {/* Background Image Section */}
-      <section className="hero-section" style={{ backgroundImage: "url('/assets/images/background.png')" }}>
-        <div className="hero-content">
-          {/* Include the new Book Appointment Button */}
-          <BookAppointmentButton />
-        </div>
-      </section>
+      {/* Include the HeroSection component */}
+      <HeroSection />
 
       {/* Include the Services Section */}
       <ServicesSection />
@@ -31,7 +26,8 @@ export default function Home() {
       {/* Include the Customer Reviews component */}
       <CustomerReviews />
 
-      <MembershipSection /> {/* Add the membership section at the end */}
+      {/* Include the Membership Section */}
+      <MembershipSection />
 
       {/* Include the Footer component */}
       <Footer />
